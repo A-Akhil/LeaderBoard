@@ -18,9 +18,9 @@ const studentSchema = new mongoose.Schema({
     course: { 
         type: String, 
         required: true, 
-        enum: ['BTech-CSE', 'BTech-ECE', 'BTech-MECH', 'BTech-CIVIL', 'BTech-EEE', 'BTech-IT', 
+        enum: ['BTech-CSE-AI', 'BTech-CSE-AIML', 'BTech-MECH', 'BTech-CIVIL', 'BTech-EEE', 'BTech-IT', 
                'MTech-CSE', 'MTech-ECE', 'MTech-MECH', 'MTech-CIVIL', 'MTech-EEE', 'MTech-IT',
-               'MTech-Integrated-CSE', 'MTech-Integrated-ECE'] // Add all your courses
+               'MTech-Integrated-CSE-ws-CC', 'MTech-Integrated-CSE-ws-SWE'] // Add all your courses
     },
     totalPoints: {
         type: Number,
@@ -42,7 +42,7 @@ const studentSchema = new mongoose.Schema({
     department: { 
         type: String,
         required: true,
-        enum: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT'] // Add all your departments
+        enum: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT', 'CINTEL'] // Add all your departments
     },
     currentClass: {
         year: { type: Number }, // Remove required
