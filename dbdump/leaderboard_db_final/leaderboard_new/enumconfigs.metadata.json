@@ -1,1 +1,1 @@
-{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"type":{"$numberInt":"1"}},"name":"type_1","background":true,"unique":true}],"uuid":"dac5fcba6c224818832a45b204ab6da8","collectionName":"enumconfigs","type":"collection"}
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"type":{"$numberInt":"1"}},"name":"type_1","background":true,"unique":true}],"uuid":"504d0cc1d74a4fd6a75318e4ea859a27","collectionName":"enumconfigs","type":"collection"}
