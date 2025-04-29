@@ -274,18 +274,33 @@ def create_classes(class_tuples, teacher_map, faculty_data):
         # Find faculty assigned to this class
         for faculty in faculty_data:
             if faculty['department'] == dept:
-                year_guide = faculty['year_guide']
+                # Get faculty member ID
+                faculty_id = faculty['faculty_id']
+                if faculty_id not in teacher_map:
+                    continue
                 
-                # Check if faculty is assigned to this year or "All" years
+                # HOD assignment - assign to all classes in their department
+                if faculty['role'] == 'HOD':
+                    academic_advisor_ids.append(teacher_map[faculty_id]["_id"])
+                    print(f"    - Assigned HOD: {faculty['name']}")
+                    continue
+                
+                # Check year guide (for Academic Advisors)
+                year_guide = faculty['year_guide']
+                if not year_guide:  # Skip if year_guide is empty
+                    continue
+                    
+                # Only assign to matching year or "All" years
                 if year_guide == str(year) or year_guide == "All":
-                    faculty_id = faculty['faculty_id']
-                    if faculty_id in teacher_map:
-                        if faculty['role'] == 'Faculty':
+                    if faculty['role'] == 'Academic Advisor':
+                        academic_advisor_ids.append(teacher_map[faculty_id]["_id"])
+                        print(f"    - Assigned Academic Advisor: {faculty['name']}")
+                    elif faculty['role'] == 'Faculty':
+                        # For faculty, also check class assignment
+                        assigned_class = faculty['classes_type']
+                        if assigned_class and (assigned_class == section):
                             assigned_faculty_ids.append(teacher_map[faculty_id]["_id"])
-                            print(f"    - Assigned faculty: {faculty['name']} (role: {faculty['role']})")
-                        elif faculty['role'] == 'Academic Advisor' or faculty['classes_type'] == 'HOD/Academic Advisor':
-                            academic_advisor_ids.append(teacher_map[faculty_id]["_id"])
-                            print(f"    - Assigned academic advisor: {faculty['name']} (role: {faculty['role']})")
+                            print(f"    - Assigned faculty: {faculty['name']} to section {section}")
         
         if not assigned_faculty_ids:
             print(f"  - WARNING: No faculty members assigned to class {class_name}")
@@ -306,7 +321,6 @@ def create_classes(class_tuples, teacher_map, faculty_data):
         }
         
         print(f"  - Created class document with ID: {class_obj['_id']}")
-        print(f"  - Academic year: {class_obj['academicYear']}")
         print(f"  - Faculty count: {len(assigned_faculty_ids)}, Advisor count: {len(academic_advisor_ids)}")
         
         # Update teacher classes
@@ -314,7 +328,6 @@ def create_classes(class_tuples, teacher_map, faculty_data):
             for teacher in teacher_map.values():
                 if teacher["_id"] == faculty_id:
                     teacher["classes"].append(class_obj["_id"])
-                    print(f"  - Added class to teacher {teacher['name']}'s class list")
         
         classes.append(class_obj)
         class_map[(dept, year, section)] = class_obj
