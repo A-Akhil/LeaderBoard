@@ -11,7 +11,7 @@ import traceback
 
 # Connect to MongoDB
 client = MongoClient('mongodb://localhost:27017/')
-db = client['leaderboard_new']
+db = client['leaderboard_new_new']
 
 # Configuration
 CURRENT_YEAR = 2024
@@ -177,6 +177,23 @@ def read_student_data():
                         print(f"  - Warning: Invalid year for student {row[column_map['REGISTER NO']]} in row {row_idx+1}, defaulting to 1")
                         year = 1
                     
+                    # Program matching algorithm
+                    valid_programs = ['BTech', 'MTech', 'MTech-Integrated']
+                    program = row[column_map['PROGRAM']]
+                    
+                    if program not in valid_programs:
+                        program_lower = program.lower().replace('.', '').replace('-', '').replace(' ', '')
+                        
+                        if 'btech' in program_lower:
+                            program = 'BTech'
+                        elif 'mtechintegrated' in program_lower or 'integratedmtech' in program_lower:
+                            program = 'MTech-Integrated'
+                        elif 'mtech' in program_lower:
+                            program = 'MTech'
+                        else:
+                            print(f"  - Warning: Unknown program format '{program}' for student {row[column_map['REGISTER NO']]}, defaulting to 'BTech'")
+                            program = 'BTech'
+                    
                     student = {
                         'register_no': row[column_map['REGISTER NO']],
                         'name': row[column_map['STUDENT NAME']],
@@ -184,7 +201,7 @@ def read_student_data():
                         'section': row[column_map['SECTION']],
                         'year': year,
                         'specialization': row[column_map['SPECIALIZATION']],
-                        'program': row[column_map['PROGRAM']],
+                        'program': program,  # Use normalized program value
                         'department': row[column_map['DEPARTMENT']],
                         'faculty_advisor': row[column_map['FACULTY ADVISOR']]
                     }
@@ -371,7 +388,7 @@ def create_students(student_data, class_map):
                 "rawPassword": password,
                 "class": class_obj["_id"],
                 "year": student['year'],
-                "course": f"{student['program']}-{student['department']}",
+                "course": student['specialization'],
                 "totalPoints": 0,
                 "eventsParticipated": [],
                 "isActive": True,
