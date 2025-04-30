@@ -21,25 +21,6 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true })); 
 app.use(cookieParser()); 
 
-// Ensure this line exists and is using the correct path
-app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
-
-// Modify your Express static file middleware to check if the environment is production
-if (process.env.NODE_ENV === 'production') {
-  // Only serve static files in production
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-  });
-} else {
-  // In development, only handle API routes
-  // Don't try to serve frontend static files
-  app.get('/', (req, res) => {
-    res.send('API is running in development mode');
-  });
-}
-
 // Routes
 const studentRoutes = require('./routes/student.routes');
 const teacherRoutes = require('./routes/teacher.routes');
@@ -55,20 +36,47 @@ const facultyReportRoutes = require('./routes/facultyReport.routes');
 const enumConfigRoutes = require('./routes/enumConfig.routes');
 const templateRoutes = require('./routes/templates.routes');
 
-// Mount routes
-app.use('/student', studentRoutes);
-app.use('/teacher', teacherRoutes);
-app.use('/admin', adminRoutes);
-app.use('/class', classRoutes);
-app.use('/leaderboard', leaderboardRoutes);
-app.use('/event', eventRoutes);
-app.use('/upcoming-events', upcomingEventRoutes);
-app.use('/assignment', assignmentRoutes);
-app.use('/reports', roleBasedEventReportsRoutes);
-app.use('/feedback', feedbackRoutes);
-app.use('/faculty-reports', facultyReportRoutes);
-app.use('/admin/config', enumConfigRoutes);
-app.use('/admin/enums', enumConfigRoutes);  // This should match the path you're accessing
-app.use('/admin/config', templateRoutes);
+// Create API router and mount all routes on it
+const apiRouter = express.Router();
+
+// Mount all existing routes on the API router
+apiRouter.use('/student', studentRoutes);
+apiRouter.use('/teacher', teacherRoutes);
+apiRouter.use('/admin', adminRoutes);
+apiRouter.use('/class', classRoutes);
+apiRouter.use('/leaderboard', leaderboardRoutes);
+apiRouter.use('/event', eventRoutes);
+apiRouter.use('/upcoming-events', upcomingEventRoutes);
+apiRouter.use('/assignment', assignmentRoutes);
+apiRouter.use('/reports', roleBasedEventReportsRoutes);
+apiRouter.use('/feedback', feedbackRoutes);
+apiRouter.use('/faculty-reports', facultyReportRoutes);
+apiRouter.use('/admin/config', enumConfigRoutes);
+apiRouter.use('/admin/enums', enumConfigRoutes);
+apiRouter.use('/admin/config', templateRoutes);
+
+// Mount the API router with /api prefix
+app.use('/api', apiRouter);
+
+// Move uploads under the API prefix
+app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
+
+// Modify your Express static file middleware to check if the environment is production
+if (process.env.NODE_ENV === 'production') {
+  // Only serve static files in production
+  console.log('Serving static files from production build');
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  
+  // This will only be reached if no API routes matched
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
+} else {
+  // In development, only handle API routes
+  // Don't try to serve frontend static files
+  app.get('/', (req, res) => {
+    res.send('API is running in development mode');
+  });
+}
 
 module.exports = app;
