@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"},{"v":{"$numberInt":"2"},"key":{"type":{"$numberInt":"1"}},"name":"type_1","background":true,"unique":true}],"uuid":"dce124f087a44b8c98366c6219be21dc","collectionName":"enumconfigs","type":"collection"}

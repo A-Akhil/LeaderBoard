@@ -1,0 +1,1 @@
+{"indexes":[{"v":{"$numberInt":"2"},"key":{"_id":{"$numberInt":"1"}},"name":"_id_"}],"uuid":"66d6701b04e644eea50ff0c7f6516ac0","collectionName":"formfieldconfigs","type":"collection"}
