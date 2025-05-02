@@ -1,0 +1,87 @@
+{
+  "_id": {
+    "$oid": "680fb7ad025076080155cc18"
+  },
+  "eventName": "ii",
+  "description": "ss",
+  "date": {
+    "$date": "2025-02-25T00:00:00.000Z"
+  },
+  "proofUrl": [],
+  "pdfDocument": "/uploads/documents/pdfDocument-1745860525575-100246725.pdf",
+  "status": "Approved",
+  "category": "Certifications",
+  "customAnswers": {
+    "provider": "Stanford/MIT/AWS/Google/Top 500",
+    "project_required": "Yes",
+    "level": "Advanced"
+  },
+  "dynamicFields": {
+    "customAnswer_provider": "Stanford/MIT/AWS/Google/Top 500",
+    "customAnswer_project_required": "Yes",
+    "customAnswer_level": "Advanced"
+  },
+  "pointsEarned": 45,
+  "submittedBy": {
+    "$oid": "680fb5e86dc85acfa6e53d36"
+  },
+  "createdAt": {
+    "$date": "2025-04-28T17:15:25.619Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-28T17:15:54.508Z"
+  },
+  "__v": 0,
+  "approvedBy": {
+    "$oid": "680fb5b76dc85acfa6e53c53"
+  }
+}
+
+approved event
+
+pending event
+{
+  "_id": {
+    "$oid": "6811e8463cc5bf703fe3856c"
+  },
+  "eventName": "shuhsu",
+  "description": "JIJI",
+  "date": {
+    "$date": "2024-02-14T00:00:00.000Z"
+  },
+  "proofUrl": [
+    "/uploads/certificates/certificateImages-1746004038122-262921294.jpeg"
+  ],
+  "pdfDocument": "/uploads/documents/pdfDocument-1746004038124-614421158.pdf",
+  "status": "Pending",
+  "category": "Hackathon",
+  "customAnswers": {
+    "level": "Intra-College",
+    "organizer_type": "Industry",
+    "participation_mode": "Solo Participation",
+    "outcome": "Winner (1st)"
+  },
+  "dynamicFields": {
+    "teamName": "GYG",
+    "customAnswer_level": "Intra-College",
+    "customAnswer_organizer_type": "Industry",
+    "customAnswer_participation_mode": "Solo Participation",
+    "customAnswer_outcome": "Winner (1st)"
+  },
+  "pointsEarned": 0,
+  "submittedBy": {
+    "$oid": "680fb5e86dc85acfa6e53d36"
+  },
+  "createdAt": {
+    "$date": "2025-04-30T09:07:18.158Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-30T09:07:18.158Z"
+  },
+  "__v": 0
+}
+
+
+
+events schema
+
