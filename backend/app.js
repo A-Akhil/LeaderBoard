@@ -11,7 +11,7 @@ const path = require('path');
 
 // CORS configuration
 app.use(cors({
-  origin: ["http://10.1.38.23:5173","http://localhost:5173","http://10.1.38.23"], // Or your actual frontend URL
+  origin: ["http://10.1.38.23:5173","http://localhost:5173","http://10.1.38.23","http://10.9.99.36:5173","http://localhost:4000"], // Or your actual frontend URL
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
@@ -64,16 +64,18 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 // Modify your Express static file middleware to check if the environment is production
 if (process.env.NODE_ENV === 'production') {
   // Only serve static files in production
-  console.log('Serving static files from production build');
-  app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  // console.log('Serving static files from production build');
+  // app.use(express.static(path.join(__dirname, '../frontend/dist')));
   
-  // This will only be reached if no API routes matched
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-  });
+  // // This will only be reached if no API routes matched
+  // app.get('*', (req, res) => {
+  //   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  // });
 } else {
   // In development, only handle API routes
   // Don't try to serve frontend static files
+  console.log('Running in development mode, serving API only');
+  console.log('API is running on http://localhost:4000/api');
   app.get('/', (req, res) => {
     res.send('API is running in development mode');
   });

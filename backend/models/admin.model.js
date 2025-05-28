@@ -52,7 +52,7 @@ adminSchema.pre('save', async function(next) {
 adminSchema.methods.generateAuthToken = function () {
     const token = jwt.sign(
         { _id: this._id.toString() },
-        process.env.JWT_SECRET || 'your-secret-key',
+        process.env.JWT_SECRET,
         { expiresIn: '24h' }
     );
     return token;
