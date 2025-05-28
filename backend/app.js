@@ -64,13 +64,13 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 // Modify your Express static file middleware to check if the environment is production
 if (process.env.NODE_ENV === 'production') {
   // Only serve static files in production
-  // console.log('Serving static files from production build');
-  // app.use(express.static(path.join(__dirname, '../frontend/dist')));
+  console.log('Serving static files from production build');
+  app.use(express.static(path.join(__dirname, '../frontend/dist')));
   
   // // This will only be reached if no API routes matched
-  // app.get('*', (req, res) => {
-  //   res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
-  // });
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(__dirname, '../frontend/dist/index.html'));
+  });
 } else {
   // In development, only handle API routes
   // Don't try to serve frontend static files
