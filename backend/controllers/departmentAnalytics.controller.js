@@ -366,6 +366,36 @@ class DepartmentAnalyticsController {
         console.error('Backend: getUntappedOpportunitiesByDepartment error:', err);
         opportunities = [];
       }
+
+      // Add new analytics methods
+      let performanceMatrix, monthlyTrends, semesterComparison;
+
+      try {
+        console.log('Backend: Starting getDepartmentPerformanceMatrix...');
+        performanceMatrix = await DepartmentAnalyticsService.getDepartmentPerformanceMatrix(req.teacher, filters);
+        console.log('Backend: getDepartmentPerformanceMatrix completed successfully');
+      } catch (err) {
+        console.error('Backend: getDepartmentPerformanceMatrix error:', err);
+        performanceMatrix = [];
+      }
+
+      try {
+        console.log('Backend: Starting getMonthlyEventTrends...');
+        monthlyTrends = await DepartmentAnalyticsService.getMonthlyEventTrends(req.teacher, filters);
+        console.log('Backend: getMonthlyEventTrends completed successfully');
+      } catch (err) {
+        console.error('Backend: getMonthlyEventTrends error:', err);
+        monthlyTrends = { monthlyData: [], monthLabels: [] };
+      }
+
+      try {
+        console.log('Backend: Starting getSemesterPerformanceComparison...');
+        semesterComparison = await DepartmentAnalyticsService.getSemesterPerformanceComparison(req.teacher, filters);
+        console.log('Backend: getSemesterPerformanceComparison completed successfully');
+      } catch (err) {
+        console.error('Backend: getSemesterPerformanceComparison error:', err);
+        semesterComparison = { semesterData: [], semesters: [] };
+      }
       
       console.log('Backend: All operations completed successfully');
 
@@ -375,6 +405,9 @@ class DepartmentAnalyticsController {
         rankings,
         categoryAnalysis,
         opportunities,
+        performanceMatrix,
+        monthlyTrends,
+        semesterComparison,
         lastUpdated: new Date()
       };
 

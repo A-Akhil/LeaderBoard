@@ -964,6 +964,277 @@ class DepartmentAnalyticsService {
       throw error;
     }
   }
+
+  /**
+   * Department Performance Matrix - Performance vs Engagement analysis
+   */
+  static async getDepartmentPerformanceMatrix(teacher, filters = {}) {
+    try {
+      console.log('Service: getDepartmentPerformanceMatrix started for teacher:', teacher.name);
+      const allowedDepartments = await this.getRoleBasedDepartmentAccess(teacher);
+      console.log('Service: getDepartmentPerformanceMatrix allowedDepartments:', allowedDepartments);
+      
+      if (allowedDepartments.length === 0) {
+        return [];
+      }
+
+      const performanceMatrix = await Promise.all(
+        allowedDepartments.map(async (dept) => {
+          // Get students in this department
+          const students = await Student.find({ department: dept })
+            .select('totalPoints eventsParticipated')
+            .lean();
+
+          const studentCount = students.length;
+          const totalPoints = students.reduce((sum, s) => sum + (s.totalPoints || 0), 0);
+          const averagePoints = studentCount > 0 ? Math.round((totalPoints / studentCount) * 10) / 10 : 0;
+
+          // Calculate engagement metrics
+          const studentsWithActivities = students.filter(s => 
+            s.eventsParticipated && s.eventsParticipated.length > 0
+          ).length;
+          const participationRate = studentCount > 0 ? 
+            Math.round((studentsWithActivities / studentCount) * 100) : 0;
+
+          // Get monthly activity for engagement trend
+          const currentDate = new Date();
+          const threeMonthsAgo = new Date();
+          threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
+
+          const recentEvents = await Event.countDocuments({
+            department: dept,
+            status: 'Approved',
+            date: { $gte: threeMonthsAgo }
+          });
+
+          const engagementScore = studentCount > 0 ? 
+            Math.round((recentEvents / studentCount) * 100) : 0;
+
+          return {
+            department: dept,
+            performance: averagePoints,
+            engagement: engagementScore,
+            participationRate,
+            studentCount,
+            recentEvents
+          };
+        })
+      );
+
+      return performanceMatrix.sort((a, b) => b.performance - a.performance);
+
+    } catch (error) {
+      console.error('Error in getDepartmentPerformanceMatrix:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Monthly Event Activity Trends - 12 months from current month backwards
+   */
+  static async getMonthlyEventTrends(teacher, filters = {}) {
+    try {
+      console.log('Service: getMonthlyEventTrends started for teacher:', teacher.name);
+      const allowedDepartments = await this.getRoleBasedDepartmentAccess(teacher);
+      console.log('Service: getMonthlyEventTrends allowedDepartments:', allowedDepartments);
+      
+      if (allowedDepartments.length === 0) {
+        return { monthlyData: [], monthLabels: [] };
+      }
+
+      // Generate last 12 months from current month backwards
+      const currentDate = new Date();
+      const monthLabels = [];
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - 11); // 12 months including current
+
+      for (let i = 0; i < 12; i++) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - (11 - i)); // 11 months back to current
+        monthLabels.push(date.toLocaleString('default', { 
+          month: 'short', 
+          year: date.getFullYear() === currentDate.getFullYear() ? undefined : 'numeric'
+        }));
+      }
+
+      const monthlyTrends = await Promise.all(
+        allowedDepartments.map(async (dept) => {
+          const monthlyData = await Event.aggregate([
+            {
+              $match: {
+                department: dept,
+                status: 'Approved',
+                date: { $gte: startDate }
+              }
+            },
+            {
+              $group: {
+                _id: {
+                  month: { $month: "$date" },
+                  year: { $year: "$date" }
+                },
+                eventCount: { $sum: 1 },
+                totalPoints: { $sum: "$pointsEarned" },
+                uniqueStudents: { $addToSet: "$submittedBy" }
+              }
+            },
+            {
+              $project: {
+                month: "$_id.month",
+                year: "$_id.year",
+                eventCount: 1,
+                totalPoints: 1,
+                uniqueStudents: { $size: "$uniqueStudents" },
+                _id: 0
+              }
+            },
+            {
+              $sort: { year: 1, month: 1 }
+            }
+          ]);
+
+          // Create array for all 12 months, filling gaps with 0
+          const dataPoints = monthLabels.map((label, index) => {
+            const targetDate = new Date();
+            targetDate.setMonth(targetDate.getMonth() - (11 - index));
+            
+            const found = monthlyData.find(item => 
+              item.month === targetDate.getMonth() + 1 && 
+              item.year === targetDate.getFullYear()
+            );
+
+            return {
+              month: label,
+              events: found ? found.eventCount : 0,
+              points: found ? found.totalPoints : 0,
+              students: found ? found.uniqueStudents : 0
+            };
+          });
+
+          return {
+            department: dept,
+            data: dataPoints
+          };
+        })
+      );
+
+      // Prepare data for chart visualization
+      const chartData = monthLabels.map((month, index) => {
+        const monthData = { month };
+        monthlyTrends.forEach(dept => {
+          monthData[dept.department] = dept.data[index].events;
+        });
+        return monthData;
+      });
+
+      return {
+        monthlyData: chartData,
+        monthLabels,
+        departmentTrends: monthlyTrends
+      };
+
+    } catch (error) {
+      console.error('Error in getMonthlyEventTrends:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Semester Performance Comparison - Properly implemented
+   */
+  static async getSemesterPerformanceComparison(teacher, filters = {}) {
+    try {
+      console.log('Service: getSemesterPerformanceComparison started for teacher:', teacher.name);
+      const allowedDepartments = await this.getRoleBasedDepartmentAccess(teacher);
+      console.log('Service: getSemesterPerformanceComparison allowedDepartments:', allowedDepartments);
+      
+      if (allowedDepartments.length === 0) {
+        return { semesterData: [], semesters: [] };
+      }
+
+      // Define academic semesters (adjust based on your academic calendar)
+      const currentYear = new Date().getFullYear();
+      const semesters = [
+        {
+          name: `Fall ${currentYear - 1}`,
+          start: new Date(currentYear - 1, 7, 1), // August 1
+          end: new Date(currentYear - 1, 11, 31)  // December 31
+        },
+        {
+          name: `Spring ${currentYear}`,
+          start: new Date(currentYear, 0, 1),     // January 1
+          end: new Date(currentYear, 4, 31)      // May 31
+        },
+        {
+          name: `Fall ${currentYear}`,
+          start: new Date(currentYear, 7, 1),    // August 1 
+          end: new Date(currentYear, 11, 31)     // December 31
+        }
+      ];
+
+      const semesterComparison = await Promise.all(
+        allowedDepartments.map(async (dept) => {
+          const semesterMetrics = await Promise.all(
+            semesters.map(async (semester) => {
+              // Get events for this department in this semester
+              const events = await Event.find({
+                department: dept,
+                status: 'Approved',
+                date: { $gte: semester.start, $lte: semester.end }
+              }).select('pointsEarned submittedBy category').lean();
+
+              const eventCount = events.length;
+              const totalPoints = events.reduce((sum, e) => sum + (e.pointsEarned || 0), 0);
+              const uniqueStudents = [...new Set(events.map(e => e.submittedBy.toString()))].length;
+
+              // Get total students in department for participation rate
+              const totalStudents = await Student.countDocuments({ department: dept });
+              const participationRate = totalStudents > 0 ? 
+                Math.round((uniqueStudents / totalStudents) * 100) : 0;
+
+              const avgPointsPerEvent = eventCount > 0 ? 
+                Math.round((totalPoints / eventCount) * 10) / 10 : 0;
+
+              return {
+                semester: semester.name,
+                eventCount,
+                totalPoints,
+                uniqueStudents,
+                participationRate,
+                avgPointsPerEvent,
+                studentsPerEvent: eventCount > 0 ? Math.round((uniqueStudents / eventCount) * 10) / 10 : 0
+              };
+            })
+          );
+
+          return {
+            department: dept,
+            semesters: semesterMetrics
+          };
+        })
+      );
+
+      // Prepare data for chart visualization
+      const chartData = semesters.map(semester => {
+        const semesterData = { semester: semester.name };
+        semesterComparison.forEach(dept => {
+          const deptSemester = dept.semesters.find(s => s.semester === semester.name);
+          semesterData[dept.department] = deptSemester ? deptSemester.eventCount : 0;
+        });
+        return semesterData;
+      });
+
+      return {
+        semesterData: chartData,
+        semesters: semesters.map(s => s.name),
+        departmentComparison: semesterComparison
+      };
+
+    } catch (error) {
+      console.error('Error in getSemesterPerformanceComparison:', error);
+      throw error;
+    }
+  }
 }
 
 // Helper function to get week number
