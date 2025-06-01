@@ -16,15 +16,16 @@ router.get('/popular-categories', RoleBasedEventReportsController.getPopularCate
 router.get('/approval-rates', RoleBasedEventReportsController.getApprovalRates);
 router.get('/trends', RoleBasedEventReportsController.getTrends);
 router.get('/advisor-year', authMiddleware.authTeacher, RoleBasedEventReportsController.getAdvisorYear);
-// HOD-only routes
+// Administrative roles (HOD, Associate Chairperson, Chairperson) routes
 router.get('/prize-money-by-class', 
   (req, res, next) => {
-    if (req.teacher.role === 'HOD' || req.teacher.role === 'admin') {
+    const adminRoles = ['HOD', 'Associate Chairperson', 'Chairperson', 'admin'];
+    if (adminRoles.includes(req.teacher.role)) {
       next();
     } else {
       return res.status(403).json({ 
         success: false, 
-        message: 'Only HOD or admin can access this report' 
+        message: 'Only HOD, Associate Chairperson, Chairperson or admin can access this report' 
       });
     }
   }, 

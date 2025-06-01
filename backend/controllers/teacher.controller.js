@@ -24,20 +24,37 @@ exports.registerTeacher = async (req, res) => {
             return res.status(400).json({ errors: errors.array() });
         }
 
-        const { name, email, password, registerNo, department, role } = req.body;
+        const { name, email, password, registerNo, department, role, managedDepartments } = req.body;
 
         // Check if role is valid
-        const validRoles = ['Faculty', 'Academic Advisor', 'HOD'];
+        const validRoles = ['Faculty', 'Academic Advisor', 'HOD', 'Associate Chairperson', 'Chairperson'];
         if (role && !validRoles.includes(role)) {
             return res.status(400).json({ message: 'Invalid role specified' });
         }
 
-        // Check if HOD already exists for this department if registering as HOD
+        // Role-specific validations
         if (role === 'HOD') {
             const existingHOD = await teacherModel.findOne({ department, role: 'HOD' });
             if (existingHOD) {
                 return res.status(400).json({ 
                     message: `HOD already exists for ${department} department` 
+                });
+            }
+        }
+
+        if (role === 'Chairperson') {
+            const existingChairperson = await teacherModel.findOne({ role: 'Chairperson' });
+            if (existingChairperson) {
+                return res.status(400).json({ 
+                    message: `Chairperson already exists` 
+                });
+            }
+        }
+
+        if (role === 'Associate Chairperson') {
+            if (!managedDepartments || !managedDepartments.length) {
+                return res.status(400).json({ 
+                    message: 'Associate Chairperson must have managed departments specified' 
                 });
             }
         }
@@ -52,15 +69,26 @@ exports.registerTeacher = async (req, res) => {
         const hashedPassword = await teacherModel.hashedPassword(password);
 
         // Create new teacher
-        const newTeacher = new teacherModel({
+        const teacherData = {
             name,
             email,
             password: hashedPassword,
             rawPassword: password, // For demo purposes only, remove in production
             registerNo,
-            department,
-            role: role || 'Faculty' // Default to Faculty if no role specified
-        });
+            role: role || 'Faculty'
+        };
+
+        // Add department for roles that need it
+        if (role !== 'Chairperson') {
+            teacherData.department = department;
+        }
+
+        // Add managed departments for Associate Chairperson
+        if (role === 'Associate Chairperson') {
+            teacherData.managedDepartments = managedDepartments;
+        }
+
+        const newTeacher = new teacherModel(teacherData);
 
         await newTeacher.save();
 
@@ -151,7 +179,7 @@ exports.registerTeachersBulk = async (req, res) => {
                     }
 
                     // Validate role
-                    const validRoles = ['Faculty', 'Academic Advisor', 'HOD'];
+                    const validRoles = ['Faculty', 'Academic Advisor', 'HOD', 'Associate Chairperson', 'Chairperson'];
                     if (!validRoles.includes(data.role)) {
                         results.failed.push({
                             teacher: data,
@@ -333,6 +361,27 @@ exports.getAdvisedClasses = async (req, res) => {
             
             console.log(`Found ${classes.length} classes for HOD in department ${teacher.department}`);
         } 
+        // Chairperson can see all classes in the institution
+        else if (teacher.role === 'Chairperson') {
+            classes = await classModel.find({})
+                .populate('facultyAssigned', 'name email registerNo')
+                .populate('academicAdvisors', 'name email registerNo');
+            
+            console.log(`Found ${classes.length} classes for Chairperson (all classes)`);
+        }
+        // Associate Chairperson can see classes from their managed departments
+        else if (teacher.role === 'Associate Chairperson') {
+            const managedDepartments = teacher.managedDepartments || [];
+            if (managedDepartments.length > 0) {
+                classes = await classModel.find({ department: { $in: managedDepartments } })
+                    .populate('facultyAssigned', 'name email registerNo')
+                    .populate('academicAdvisors', 'name email registerNo');
+                
+                console.log(`Found ${classes.length} classes for Associate Chairperson in departments: ${managedDepartments.join(', ')}`);
+            } else {
+                console.log('Associate Chairperson has no managed departments assigned');
+            }
+        }
         // For Academic Advisors and Faculty, find classes where they're listed
         else {
             classes = await classModel.find({ 

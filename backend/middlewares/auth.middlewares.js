@@ -184,3 +184,49 @@ module.exports.authAcademicAdvisor = async (req, res, next) => {
         return res.status(401).json({ message: 'Unauthorized' });
     }
 };
+
+// New middleware for Associate Chairperson access
+module.exports.authAssociateChairperson = async (req, res, next) => {
+    try {
+        await module.exports.authTeacher(req, res, () => {
+            if (req.teacher && (req.teacher.role === 'Associate Chairperson' || req.teacher.role === 'Chairperson')) {
+                next();
+            } else {
+                return res.status(403).json({ message: 'Access denied. Associate Chairperson role or higher required.' });
+            }
+        });
+    } catch (err) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+};
+
+// New middleware for Chairperson access
+module.exports.authChairperson = async (req, res, next) => {
+    try {
+        await module.exports.authTeacher(req, res, () => {
+            if (req.teacher && req.teacher.role === 'Chairperson') {
+                next();
+            } else {
+                return res.status(403).json({ message: 'Access denied. Chairperson role required.' });
+            }
+        });
+    } catch (err) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+};
+
+// Enhanced middleware for administrative access (HOD, Academic Advisor, Associate Chairperson, Chairperson)
+module.exports.authAdministrative = async (req, res, next) => {
+    try {
+        await module.exports.authTeacher(req, res, () => {
+            const adminRoles = ['HOD', 'Academic Advisor', 'Associate Chairperson', 'Chairperson'];
+            if (req.teacher && adminRoles.includes(req.teacher.role)) {
+                next();
+            } else {
+                return res.status(403).json({ message: 'Access denied. Administrative role required.' });
+            }
+        });
+    } catch (err) {
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+};

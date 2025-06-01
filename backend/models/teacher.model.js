@@ -12,14 +12,22 @@ const teacherSchema = new mongoose.Schema({
     role: { 
         type: String, 
         required: true, 
-        enum: ['Faculty', 'Academic Advisor', 'HOD'],
+        enum: ['Faculty', 'Academic Advisor', 'HOD', 'Associate Chairperson', 'Chairperson'],
         default: 'Faculty'
     },
     department: { 
         type: String, 
-        required: true,
+        required: function() {
+            // Department is required for all roles except Chairperson
+            return this.role !== 'Chairperson';
+        },
         enum: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT','CINTEL'] // Add all your departments
     },
+    // For Associate Chairpersons - array of departments they manage
+    managedDepartments: [{
+        type: String,
+        enum: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT','CINTEL']
+    }],
     classes: [{
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Class'
@@ -51,6 +59,16 @@ teacherSchema.statics.hashedPassword = async function (password) {
 
 // Method: Check if teacher has access to a specific class
 teacherSchema.methods.hasAccessToClass = function(classId) {
+    // Chairperson has access to all classes across all departments
+    if (this.role === 'Chairperson') {
+        return true;
+    }
+    
+    // Associate Chairperson has access to classes in their assigned departments
+    if (this.role === 'Associate Chairperson') {
+        return true; // Will be filtered by department in the service layer
+    }
+    
     // HODs have access to all classes in their department
     if (this.role === 'HOD') {
         return true;

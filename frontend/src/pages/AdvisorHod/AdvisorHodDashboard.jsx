@@ -80,7 +80,19 @@ const AdvisorHodDashboard = () => {
               },
             }
           );
+        } else if (userData.role === "Associate Chairperson" || userData.role === "Chairperson") {
+          // For now, use advised-classes endpoint - backend will handle role-based access
+          classesResponse = await axios.get(
+            `${VITE_BASE_URL}/teacher/advised-classes`,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                "Content-Type": "application/json",
+              },
+            }
+          );
         } else {
+          // Academic Advisor and others
           classesResponse = await axios.get(
             `${VITE_BASE_URL}/teacher/advised-classes`,
             {
@@ -219,9 +231,10 @@ const AdvisorHodDashboard = () => {
               {userData?.role || "N/A"}
             </p>
             <p className="text-xs lg:text-sm text-gray-500 mt-2">
-              {userData?.role === "HOD"
-                ? "Head of Department"
-                : "Academic Advisor"}
+              {userData?.role === "HOD" ? "Head of Department" :
+               userData?.role === "Academic Advisor" ? "Academic Advisor" :
+               userData?.role === "Associate Chairperson" ? "Associate Chairperson" :
+               userData?.role === "Chairperson" ? "Chairperson" : "Administrative Role"}
             </p>
           </div>
 
@@ -237,9 +250,10 @@ const AdvisorHodDashboard = () => {
               {classes?.length || 0}
             </p>
             <p className="text-xs lg:text-sm text-gray-500 mt-2">
-              {userData?.role === "HOD"
-                ? "Departmental Classes"
-                : "Classes Managed"}
+              {userData?.role === "HOD" ? "Departmental Classes" :
+               userData?.role === "Academic Advisor" ? "Classes Managed" :
+               userData?.role === "Associate Chairperson" ? "Managed Department Classes" :
+               userData?.role === "Chairperson" ? "All Institute Classes" : "Classes Accessible"}
             </p>
           </div>
         </div>
@@ -298,7 +312,13 @@ const AdvisorHodDashboard = () => {
                     ? "Try selecting a different year filter."
                     : userData?.role === "HOD"
                     ? "Classes for your department will appear here."
-                    : "Classes assigned to you will appear here."}
+                    : userData?.role === "Academic Advisor"
+                    ? "Classes assigned to you will appear here."
+                    : userData?.role === "Associate Chairperson"
+                    ? "Classes from your managed departments will appear here."
+                    : userData?.role === "Chairperson"
+                    ? "All institute classes will appear here."
+                    : "Accessible classes will appear here."}
                 </p>
               </div>
             )}
@@ -372,7 +392,10 @@ const AdvisorHodDashboard = () => {
           {isMobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
         </button>
         <h1 className="text-xl font-bold text-gray-800">
-          {userData?.role === "HOD" ? "HOD Portal" : "Academic Advisor Portal"}
+          {userData?.role === "HOD" ? "HOD Portal" : 
+           userData?.role === "Academic Advisor" ? "Academic Advisor Portal" :
+           userData?.role === "Associate Chairperson" ? "Associate Chairperson Portal" :
+           userData?.role === "Chairperson" ? "Chairperson Portal" : "Administrative Portal"}
         </h1>
         {/* Empty div to maintain spacing with justify-between */}
         <div className="w-10"></div>
@@ -390,7 +413,10 @@ const AdvisorHodDashboard = () => {
         {/* Show heading only once - show in sidebar only on desktop */}
         {windowWidth >= 1024 && (
           <h1 className="text-2xl font-bold text-gray-800 mb-6">
-            {userData?.role === "HOD" ? "HOD Dashboard" : "Academic Advisor Dashboard"}
+            {userData?.role === "HOD" ? "HOD Dashboard" : 
+             userData?.role === "Academic Advisor" ? "Academic Advisor Dashboard" :
+             userData?.role === "Associate Chairperson" ? "Associate Chairperson Dashboard" :
+             userData?.role === "Chairperson" ? "Chairperson Dashboard" : "Administrative Dashboard"}
           </h1>
         )}
         

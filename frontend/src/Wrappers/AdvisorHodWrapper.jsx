@@ -26,7 +26,10 @@ const AdvisorHodWrapper = ({ children }) => {
                 );
                 
                 const role = response.data.role;
-                if (role !== 'HOD' && role !== 'Academic Advisor') {
+                if (role !== 'HOD' && 
+                    role !== 'Academic Advisor' && 
+                    role !== 'Associate Chairperson' && 
+                    role !== 'Chairperson') {
                     // Redirect faculty to teacher dashboard
                     navigate("/teacher-dashboard");
                 }

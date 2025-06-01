@@ -66,12 +66,12 @@ router.put('/change-password', authMiddleware.authTeacher, teacherController.cha
 
 router.get('/logout', authMiddleware.authTeacher, teacherController.logoutTeacher);
 
-// HOD specific routes
-router.get('/department-classes', authMiddleware.authHOD, teacherController.getDepartmentClasses);
-router.get('/department-teachers', authMiddleware.authHOD, teacherController.getTeachersByRole);
+// HOD and higher specific routes (includes Associate Chairperson and Chairperson)
+router.get('/department-classes', authMiddleware.authAdministrative, teacherController.getDepartmentClasses);
+router.get('/department-teachers', authMiddleware.authAdministrative, teacherController.getTeachersByRole);
 
-// Academic Advisor specific routes
-router.get('/advised-classes', authMiddleware.authAcademicAdvisor, teacherController.getAdvisedClasses);
+// Academic Advisor and higher specific routes (includes HOD, Associate Chairperson, Chairperson)
+router.get('/advised-classes', authMiddleware.authAdministrative, teacherController.getAdvisedClasses);
 
 router.get('/verify', authMiddleware.authTeacher, (req, res) => {
     return res.status(200).json({ isAuthenticated: true });

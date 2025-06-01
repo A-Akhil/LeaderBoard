@@ -1,0 +1,861 @@
+[{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea6181c"
+  },
+  "category": "Hackathon",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description"
+  ],
+  "optionalFields": [
+    "teamName"
+  ],
+  "customQuestions": [
+    {
+      "id": "level",
+      "text": "What was the level of the hackathon?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Intra-College",
+        "Inter-College",
+        "National",
+        "International"
+      ],
+      "_id": {
+        "$oid": "680b2cf268bb7d1b876c2160"
+      }
+    },
+    {
+      "id": "organizer_type",
+      "text": "Who organized the hackathon?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Industry",
+        "Academic Institution"
+      ],
+      "_id": {
+        "$oid": "680b2cf268bb7d1b876c2161"
+      }
+    },
+    {
+      "id": "participation_mode",
+      "text": "How did you participate?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Solo Participation",
+        "Team Participation"
+      ],
+      "_id": {
+        "$oid": "680b2cf268bb7d1b876c2162"
+      }
+    },
+    {
+      "id": "outcome",
+      "text": "What was your outcome in the hackathon?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Winner (1st)",
+        "Runner-up (2nd)",
+        "3rd Place",
+        "Finalist",
+        "Participant"
+      ],
+      "_id": {
+        "$oid": "680b2cf268bb7d1b876c2163"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.613Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-27T09:29:46.463Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": true,
+    "requirePdfProof": true,
+    "allowMultipleCertificates": false,
+    "maxCertificateSize": 2
+  }
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea6181f"
+  },
+  "category": "Coding",
+  "requiredFields": [],
+  "optionalFields": [],
+  "customQuestions": [],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.628Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-25T06:33:06.628Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61821"
+  },
+  "category": "Open Source",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description",
+    "githubRepoUrl"
+  ],
+  "optionalFields": [],
+  "customQuestions": [
+    {
+      "id": "repo_forks",
+      "text": "How many forks does the repository have?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        ">1000",
+        "500–1000",
+        "Less than 500"
+      ],
+      "_id": {
+        "$oid": "680da93af8be779177c12f6e"
+      }
+    },
+    {
+      "id": "pr_status",
+      "text": "What is the status of your pull request?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Merged",
+        "Pending Review"
+      ],
+      "_id": {
+        "$oid": "680da93af8be779177c12f6f"
+      }
+    },
+    {
+      "id": "contribution_type",
+      "text": "What type of work did you contribute?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Feature",
+        "Bug Fix",
+        "Documentation"
+      ],
+      "_id": {
+        "$oid": "680da93af8be779177c12f70"
+      }
+    },
+    {
+      "id": "lines_changed",
+      "text": "Approximately how many lines of code did you contribute?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "0–100",
+        "100–500",
+        "500+"
+      ],
+      "_id": {
+        "$oid": "680da93af8be779177c12f71"
+      }
+    },
+    {
+      "id": "contribution_badge",
+      "text": "Did you earn any contributor badges?",
+      "type": "singleChoice",
+      "required": false,
+      "options": [
+        "Hacktoberfest finisher",
+        "GSoC Contributor",
+        "None"
+      ],
+      "_id": {
+        "$oid": "680da93af8be779177c12f73"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.679Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-27T03:51:22.460Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": false,
+    "requirePdfProof": false,
+    "maxCertificateSize": 5,
+    "allowMultipleCertificates": true
+  }
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61823"
+  },
+  "category": "Research",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description"
+  ],
+  "optionalFields": [
+    "publicationLink"
+  ],
+  "customQuestions": [
+    {
+      "id": "publisher",
+      "text": "Who published your paper?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "IEEE/Springer/Elsevier(q1)",
+        "Other Scopus/SCI Journals (Q2)",
+        "Others"
+      ],
+      "_id": {
+        "$oid": "680daa6ef8be779177c12ff9"
+      }
+    },
+    {
+      "id": "authorship",
+      "text": "What was your authorship position?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "1st Author",
+        "2nd Author",
+        "Co-author"
+      ],
+      "_id": {
+        "$oid": "680daa6ef8be779177c12ffa"
+      }
+    },
+    {
+      "id": "paper_type",
+      "text": "What type of paper did you publish?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Research",
+        "Review/Survey"
+      ],
+      "_id": {
+        "$oid": "680daa6ef8be779177c12ffb"
+      }
+    },
+    {
+      "id": "event_type",
+      "text": "How was the paper presented?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Conference Presentation",
+        "Poster Presentation"
+      ],
+      "_id": {
+        "$oid": "680daa6ef8be779177c12ffc"
+      }
+    },
+    {
+      "id": "conference_level",
+      "text": "What was the level of the conference?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "International",
+        "National"
+      ],
+      "_id": {
+        "$oid": "680daa6ef8be779177c12ffd"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.691Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-27T03:54:22.540Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": false,
+    "requirePdfProof": true,
+    "allowMultipleCertificates": false
+  }
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61825"
+  },
+  "category": "Certifications",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description"
+  ],
+  "optionalFields": [
+    "certificateLink"
+  ],
+  "customQuestions": [
+    {
+      "id": "provider",
+      "text": "Who is the certification provider?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Stanford/MIT/AWS/Google/Top 500",
+        "NPTEL",
+        "Coursera/Udemy",
+        "Other"
+      ],
+      "_id": {
+        "$oid": "680b33df4b97da76b81cee14"
+      }
+    },
+    {
+      "id": "project_required",
+      "text": "Did the certification require a final project?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Yes",
+        "No"
+      ],
+      "_id": {
+        "$oid": "680b33df4b97da76b81cee15"
+      }
+    },
+    {
+      "id": "level",
+      "text": "What was the difficulty level of the certification?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Beginner",
+        "Intermediate",
+        "Advanced"
+      ],
+      "_id": {
+        "$oid": "680b33df4b97da76b81cee16"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.702Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-28T17:13:49.517Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": false,
+    "requirePdfProof": true,
+    "maxCertificateSize": 5,
+    "allowMultipleCertificates": false
+  }
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61827"
+  },
+  "category": "NCC-NSS",
+  "requiredFields": [],
+  "optionalFields": [],
+  "customQuestions": [],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.710Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-25T06:33:06.710Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61829"
+  },
+  "category": "Sports",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description",
+    "positionSecured",
+    "eventScope"
+  ],
+  "optionalFields": [
+    "sportName",
+    "eventLocation"
+  ],
+  "customQuestions": [
+    {
+      "id": "competition_level",
+      "text": "What was the level of competition?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "College",
+        "Inter-College",
+        "State",
+        "National",
+        "International"
+      ],
+      "_id": {
+        "$oid": "680daaeaf8be779177c13040"
+      }
+    },
+    {
+      "id": "position",
+      "text": "What position did you achieve?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Winner",
+        "Runner-Up",
+        "Participant"
+      ],
+      "_id": {
+        "$oid": "680daaeaf8be779177c13041"
+      }
+    },
+    {
+      "id": "sport_type",
+      "text": "Is this an individual or team sport?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Individual Sport",
+        "Team Sport"
+      ],
+      "_id": {
+        "$oid": "680daaeaf8be779177c13042"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.717Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-27T03:56:26.175Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": true,
+    "requirePdfProof": false,
+    "maxCertificateSize": 5,
+    "allowMultipleCertificates": true
+  }
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea6182b"
+  },
+  "category": "Workshop",
+  "requiredFields": [],
+  "optionalFields": [],
+  "customQuestions": [],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.726Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-25T06:33:06.726Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea6182d"
+  },
+  "category": "Leadership",
+  "requiredFields": [],
+  "optionalFields": [],
+  "customQuestions": [],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.739Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-25T06:33:06.739Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea6182f"
+  },
+  "category": "Social Work",
+  "requiredFields": [],
+  "optionalFields": [],
+  "customQuestions": [],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.750Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-25T06:33:06.750Z"
+  },
+  "__v": 0
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61831"
+  },
+  "category": "Coding Competitions",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description"
+  ],
+  "optionalFields": [],
+  "customQuestions": [
+    {
+      "id": "platform",
+      "text": "What type of platform hosted the competition?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Top-tier (CodeForces, LeetCode, etc.)",
+        "Unknown"
+      ],
+      "_id": {
+        "$oid": "680b332a4b97da76b81ced75"
+      }
+    },
+    {
+      "id": "percentile",
+      "text": "What percentile did you achieve?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Top 1%",
+        "Top 5%",
+        "Top 10%",
+        "Participant"
+      ],
+      "_id": {
+        "$oid": "680b332a4b97da76b81ced76"
+      }
+    },
+    {
+      "id": "region",
+      "text": "What was the scope of the competition?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "International",
+        "National"
+      ],
+      "_id": {
+        "$oid": "680b332a4b97da76b81ced77"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.760Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-27T03:42:40.954Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": true,
+    "requirePdfProof": true,
+    "maxCertificateSize": 2,
+    "allowMultipleCertificates": false
+  }
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61833"
+  },
+  "category": "NCC_NSS_YRC",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description"
+  ],
+  "optionalFields": [
+    "eventLocation"
+  ],
+  "customQuestions": [
+    {
+      "id": "camps_attended",
+      "text": "Which camps have you attended?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "RDC/TSC/NSC/VSC",
+        "NIC/Others",
+        "CATC/ATC",
+        "None"
+      ],
+      "_id": {
+        "$oid": "680ca5baf8be779177c12e9e"
+      }
+    },
+    {
+      "id": "rank",
+      "text": "What is your rank?",
+      "type": "singleChoice",
+      "required": false,
+      "options": [
+        "SUO",
+        "JUO",
+        "CSM",
+        "CQMS",
+        "Sgt",
+        "Cp",
+        "Lc",
+        "Cdt",
+        "Other/None"
+      ],
+      "_id": {
+        "$oid": "680ca5baf8be779177c12e9f"
+      }
+    },
+    {
+      "id": "award",
+      "text": "Did you receive any special recognition?",
+      "type": "singleChoice",
+      "required": false,
+      "options": [
+        "Best Cadet/Parade",
+        "Other Award",
+        "None"
+      ],
+      "_id": {
+        "$oid": "680ca5baf8be779177c12ea0"
+      }
+    },
+    {
+      "id": "volunteer_hours",
+      "text": "How many volunteer hours have you completed?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "50+",
+        "100+",
+        "200+",
+        "Less than 50 hours"
+      ],
+      "_id": {
+        "$oid": "680ca5baf8be779177c12ea1"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.770Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-26T09:22:02.782Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": true,
+    "requirePdfProof": false,
+    "maxCertificateSize": 5,
+    "allowMultipleCertificates": true
+  }
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61835"
+  },
+  "category": "Workshops",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description"
+  ],
+  "optionalFields": [],
+  "customQuestions": [
+    {
+      "id": "duration",
+      "text": "What was the duration of the workshop?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "1 day",
+        "3 day",
+        ">5 full day"
+      ],
+      "_id": {
+        "$oid": "680b33fc4b97da76b81cee43"
+      }
+    },
+    {
+      "id": "role",
+      "text": "What was your role in the workshop?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Attendee",
+        "Organizer"
+      ],
+      "_id": {
+        "$oid": "680b33fc4b97da76b81cee44"
+      }
+    },
+    {
+      "id": "industry_organizer",
+      "text": "Was the workshop organized by an industry partner?",
+      "type": "singleChoice",
+      "required": false,
+      "options": [
+        "Industry (Top 500)",
+        "No"
+      ],
+      "_id": {
+        "$oid": "680b33fc4b97da76b81cee45"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.778Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-26T08:18:37.971Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": true,
+    "requirePdfProof": true,
+    "maxCertificateSize": 2,
+    "allowMultipleCertificates": false
+  }
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61837"
+  },
+  "category": "Student Leadership",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description"
+  ],
+  "optionalFields": [
+    "eventLocation",
+    "role"
+  ],
+  "customQuestions": [
+    {
+      "id": "leadership_position",
+      "text": "What leadership position did you hold?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Club President",
+        "Secretary/Core Team Heads",
+        "Member"
+      ],
+      "_id": {
+        "$oid": "680dabf1f8be779177c1307b"
+      }
+    },
+    {
+      "id": "event_size",
+      "text": "How many participants were involved?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "<100 participants",
+        "100–500",
+        "500+"
+      ],
+      "_id": {
+        "$oid": "680dabf1f8be779177c1307c"
+      }
+    },
+    {
+      "id": "series_organized",
+      "text": "Did you organize a series of events?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Yes (Webinars/Tech Talks/etc)",
+        "No"
+      ],
+      "_id": {
+        "$oid": "680dabf1f8be779177c1307d"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.788Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-27T04:02:07.555Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": true,
+    "requirePdfProof": false,
+    "maxCertificateSize": 5,
+    "allowMultipleCertificates": true
+  }
+},
+{
+  "_id": {
+    "$oid": "680b2ca2279d175e1ea61839"
+  },
+  "category": "Social Work & Community Impact",
+  "requiredFields": [
+    "eventName",
+    "date",
+    "description"
+  ],
+  "optionalFields": [
+    "eventLocation",
+    "organizationName"
+  ],
+  "customQuestions": [
+    {
+      "id": "activity_type",
+      "text": "What type of social work activity was this?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "Plantation/Cleanup Drive",
+        "Education/NGO Teaching",
+        "Health/Disaster Relief"
+      ],
+      "_id": {
+        "$oid": "680b340e4b97da76b81cee63"
+      }
+    },
+    {
+      "id": "hours_invested",
+      "text": "How many hours did you invest in this activity?",
+      "type": "singleChoice",
+      "required": true,
+      "options": [
+        "20–50 hrs",
+        "50–100 hrs",
+        "100+ hrs"
+      ],
+      "_id": {
+        "$oid": "680b340e4b97da76b81cee64"
+      }
+    }
+  ],
+  "createdAt": {
+    "$date": "2025-04-25T06:33:06.800Z"
+  },
+  "updatedAt": {
+    "$date": "2025-04-26T08:19:03.552Z"
+  },
+  "__v": 0,
+  "proofConfig": {
+    "requireCertificateImage": true,
+    "requirePdfProof": true,
+    "maxCertificateSize": 2,
+    "allowMultipleCertificates": false
+  }
+}]

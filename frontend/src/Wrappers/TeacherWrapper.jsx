@@ -117,8 +117,11 @@ const TeacherProtectWrapper = ({ children }) => {
                             return;
                         }
                         
-                        // Remove the path condition to always redirect HODs/Advisors
-                        if (teacherData.role === 'HOD' || teacherData.role === 'Academic Advisor') {
+                        // Remove the path condition to always redirect HODs/Advisors/Chairpersons/Associate Chairpersons
+                        if (teacherData.role === 'HOD' || 
+                            teacherData.role === 'Academic Advisor' || 
+                            teacherData.role === 'Associate Chairperson' || 
+                            teacherData.role === 'Chairperson') {
                             console.log("Redirecting to advisor-hod-dashboard");
                             navigate("/advisor-hod-dashboard");
                             return;

@@ -12,20 +12,37 @@ class RoleBasedEventReportsService {
     console.log("Teacher role:", teacher.role);
     console.log("Teacher department:", teacher.department);
     
-    // Base filters - only include approved events and always filter by department
+    // Base filters - only include approved events
     let filters = { status: 'Approved' };
-    
-    // For all roles except Admin/Principal, apply department filtering
-    if (teacher.department && teacher.role !== 'Admin' && teacher.role !== 'Principal') {
-      filters.department = teacher.department;
-      console.log(`Applying department filter: ${teacher.department}`);
-    }
     
     // Different filtering logic based on role
     switch(teacher.role) {
+      case 'Chairperson':
+        // Chairperson can see all events across the institution
+        console.log("Using Chairperson filters - all events");
+        // No additional filters needed - sees everything
+        break;
+        
+      case 'Associate Chairperson':
+        // Associate Chairperson sees events from their managed departments
+        console.log("Using Associate Chairperson filters");
+        const managedDepartments = teacher.managedDepartments || [];
+        if (managedDepartments.length > 0) {
+          filters.department = { $in: managedDepartments };
+          console.log(`Applying managed departments filter: ${managedDepartments.join(', ')}`);
+        } else {
+          console.log("Warning: Associate Chairperson has no managed departments");
+          // Return dummy filter if no departments managed
+          return { _id: mongoose.Types.ObjectId("000000000000000000000000") };
+        }
+        break;
+        
       case 'HOD':
-        // HOD can see all classes in their department (department already set above)
+        // HOD can see all classes in their department
         console.log("Using HOD filters for", teacher.department);
+        if (teacher.department) {
+          filters.department = teacher.department;
+        }
         break;
         
       case 'Academic Advisor':
@@ -44,12 +61,21 @@ class RoleBasedEventReportsService {
           console.log(`Found ${advisorClasses.length} classes for advisor`);
           filters.classIds = advisorClasses.map(c => c._id);
         }
+        // Also apply department filter for Academic Advisor
+        if (teacher.department) {
+          filters.department = teacher.department;
+        }
         break;
         
       case 'Faculty':
       default:
         // Faculty sees only their assigned classes, within their department
         console.log("Using Faculty filters");
+        
+        // Apply department filter for faculty
+        if (teacher.department) {
+          filters.department = teacher.department;
+        }
         
         // Get classes where teacher is assigned
         const facultyClasses = await Class.find({ 
@@ -225,7 +251,32 @@ class RoleBasedEventReportsService {
       // Build query based on teacher's role
       let query = {};
       
-      if (teacher.role === 'HOD' && teacher.department) {
+      if (teacher.role === 'Chairperson') {
+        // Chairperson sees all classes in the institution
+        // No department filter needed
+        
+        // Apply year filter if provided for Chairperson
+        if (yearFilter && !isNaN(parseInt(yearFilter))) {
+          query.year = parseInt(yearFilter);
+        }
+      }
+      else if (teacher.role === 'Associate Chairperson') {
+        // Associate Chairperson sees classes from managed departments
+        const managedDepartments = teacher.managedDepartments || [];
+        if (managedDepartments.length > 0) {
+          query.department = { $in: managedDepartments };
+          
+          // Apply year filter if provided for Associate Chairperson
+          if (yearFilter && !isNaN(parseInt(yearFilter))) {
+            query.year = parseInt(yearFilter);
+          }
+        } else {
+          console.log("Warning: Associate Chairperson has no managed departments");
+          // Return empty array if no departments managed
+          return [];
+        }
+      }
+      else if (teacher.role === 'HOD' && teacher.department) {
         // HOD sees all classes in their department
         query.department = teacher.department;
         
