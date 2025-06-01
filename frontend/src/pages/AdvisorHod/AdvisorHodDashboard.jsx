@@ -11,10 +11,12 @@ import {
   BarChart,
   Menu,
   X,
+  TrendingUp,
 } from "lucide-react";
 import AdvisorProfile from "../../components/advisor/AdvisorProfile";
 import ClassesList from "../../components/advisor/ClassesList";
 import ReportSection from "./ReportSection";
+import DepartmentAnalyticsPage from "../../components/analytics/DepartmentAnalyticsPage";
 
 const AdvisorHodDashboard = () => {
   const [userData, setUserData] = useState(null);
@@ -198,6 +200,15 @@ const AdvisorHodDashboard = () => {
       );
     }
 
+    if (currentView === "departmentAnalytics") {
+      return (
+        <DepartmentAnalyticsPage
+          userData={userData}
+          handleBackToDashboard={() => setCurrentView("dashboard")}
+        />
+      );
+    }
+
     // Default dashboard view
     return (
       <div className="p-4 lg:p-8">
@@ -345,7 +356,11 @@ const AdvisorHodDashboard = () => {
           </div>
 
           <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className={`grid grid-cols-1 gap-4 ${
+              (userData?.role === "Chairperson" || userData?.role === "Associate Chairperson") 
+                ? "md:grid-cols-2 lg:grid-cols-4" 
+                : "md:grid-cols-3"
+            }`}>
               <div
                 className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer"
                 onClick={() => setCurrentView("reports")}
@@ -373,6 +388,24 @@ const AdvisorHodDashboard = () => {
                   Top performing students and classes
                 </p>
               </div>
+              
+              {/* Department Analytics - only for Chairperson and Associate Chairperson */}
+              {(userData?.role === "Chairperson" || userData?.role === "Associate Chairperson") && (
+                <div
+                  className="border rounded-lg p-4 hover:bg-gray-50 transition-colors cursor-pointer bg-gradient-to-br from-blue-50 to-indigo-50 border-blue-200"
+                  onClick={() => setCurrentView("departmentAnalytics")}
+                >
+                  <div className="flex items-center gap-2 mb-2">
+                    <TrendingUp className="h-4 w-4 text-blue-600" />
+                    <h3 className="font-medium text-gray-900">Department Analytics</h3>
+                  </div>
+                  <p className="text-sm text-gray-500">
+                    {userData?.role === "Chairperson" 
+                      ? "Institution-wide strategic insights" 
+                      : "Multi-department performance analytics"}
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -453,6 +486,19 @@ const AdvisorHodDashboard = () => {
             <BarChart className="mr-3" size={20} />
             Reports
           </button>
+          
+          {/* Department Analytics - only for Chairperson and Associate Chairperson */}
+          {(userData?.role === "Chairperson" || userData?.role === "Associate Chairperson") && (
+            <button
+              onClick={() => handleViewChange("departmentAnalytics")}
+              className={`flex items-center w-full p-3 rounded-lg ${
+                currentView === "departmentAnalytics" ? "bg-blue-100 text-blue-700" : "hover:bg-gray-100"
+              }`}
+            >
+              <TrendingUp className="mr-3" size={20} />
+              Department Analytics
+            </button>
+          )}
           
           <button
             onClick={() => handleViewChange("profile")}

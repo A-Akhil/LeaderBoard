@@ -35,6 +35,7 @@ const feedbackRoutes = require('./routes/feedback.routes');
 const facultyReportRoutes = require('./routes/facultyReport.routes');
 const enumConfigRoutes = require('./routes/enumConfig.routes');
 const templateRoutes = require('./routes/templates.routes');
+const departmentAnalyticsRoutes = require('./routes/departmentAnalytics.routes');
 
 // Create API router and mount all routes on it
 const apiRouter = express.Router();
@@ -51,6 +52,7 @@ apiRouter.use('/assignment', assignmentRoutes);
 apiRouter.use('/reports', roleBasedEventReportsRoutes);
 apiRouter.use('/feedback', feedbackRoutes);
 apiRouter.use('/faculty-reports', facultyReportRoutes);
+apiRouter.use('/department-analytics', departmentAnalyticsRoutes);
 apiRouter.use('/admin/config', enumConfigRoutes);
 apiRouter.use('/admin/enums', enumConfigRoutes);
 apiRouter.use('/admin/config', templateRoutes);
