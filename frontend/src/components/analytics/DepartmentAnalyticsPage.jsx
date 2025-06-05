@@ -15,7 +15,8 @@ import {
   Pie,
   Cell,
   Area,
-  AreaChart
+  AreaChart,
+  ReferenceLine
 } from 'recharts';
 import {
   TrendingUp,
@@ -255,15 +256,32 @@ const DepartmentAnalyticsPage = ({ userData, handleBackToDashboard }) => {
       fourthYear: Math.round(dept.averagePoints * 1.2), // Final years perform better
     }));
 
-    // Performance growth analysis
-    const performanceGrowth = rankings.map(dept => ({
-      department: dept.department,
-      currentScore: dept.averagePoints,
-      eventGrowth: dept.eventGrowth,
-      pointsGrowth: dept.pointsGrowth,
-      rank: dept.rank,
-      trend: dept.eventGrowth > 0 ? 'up' : dept.eventGrowth < -10 ? 'down' : 'stable'
-    }));
+    // Performance growth analysis - improved handling with better context
+    const performanceGrowth = rankings.map(dept => {
+      const eventGrowth = Math.round((dept.eventGrowth || 0) * 10) / 10;
+      const pointsGrowth = Math.round((dept.pointsGrowth || 0) * 10) / 10;
+      
+      // Determine trend with more nuanced classification
+      let trend = 'stable';
+      if (eventGrowth > 10) trend = 'up';
+      else if (eventGrowth < -20) trend = 'down';
+      
+      return {
+        department: dept.department,
+        currentScore: dept.averagePoints || 0,
+        eventGrowth: eventGrowth,
+        pointsGrowth: pointsGrowth,
+        eventGrowthLabel: dept.eventGrowthLabel || `${eventGrowth > 0 ? '+' : ''}${eventGrowth}%`,
+        pointsGrowthLabel: dept.pointsGrowthLabel || `${pointsGrowth > 0 ? '+' : ''}${pointsGrowth}%`,
+        rank: dept.rank || 0,
+        trend: trend,
+        monthlyEvents: dept.currentMonthEvents || 0,
+        submissionRate: dept.submissionRate || 0,
+        currentPeriodEvents: dept.currentPeriodEvents || 0,
+        priorPeriodEvents: dept.priorPeriodEvents || 0,
+        comparisonPeriod: dept.comparisonPeriod || 'First N days'
+      };
+    });
 
     return (
       <div className="space-y-6">
@@ -326,31 +344,66 @@ const DepartmentAnalyticsPage = ({ userData, handleBackToDashboard }) => {
           <div className="bg-white p-6 rounded-lg shadow-md">
             <h3 className="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
               <TrendingUp className="h-5 w-5 text-green-600" />
-              Performance Growth Trends
+              Department Growth Comparison
             </h3>
-            <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={performanceGrowth}>
+            <p className="text-sm text-gray-600 mb-4">
+              Comparing first {rankings[0]?.comparisonPeriod || 'N days'} of this month vs same period last month
+            </p>
+            <ResponsiveContainer width="100%" height={400}>
+              <BarChart data={performanceGrowth} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="department" />
-                <YAxis />
-                <Tooltip />
+                <XAxis 
+                  dataKey="department" 
+                  angle={-45} 
+                  textAnchor="end" 
+                  height={80}
+                  interval={0}
+                />
+                <YAxis 
+                  label={{ value: 'Growth Rate (%)', angle: -90, position: 'insideLeft' }}
+                  domain={['dataMin - 10', 'dataMax + 10']}
+                  tickFormatter={(value) => `${value}%`}
+                />
+                {/* Reference line at 0% */}
+                <ReferenceLine y={0} stroke="#64748b" strokeDasharray="2 2" />
+                <Tooltip 
+                  formatter={(value, name, props) => {
+                    const dept = props.payload;
+                    if (name.includes('Event Growth')) {
+                      return [dept.eventGrowthLabel || `${value}%`, 'Event Growth'];
+                    } else if (name.includes('Points Growth')) {
+                      return [dept.pointsGrowthLabel || `${value}%`, 'Points Growth'];
+                    }
+                    return [`${value}%`, name];
+                  }}
+                  labelFormatter={(label) => `Department: ${label}`}
+                  contentStyle={{ 
+                    backgroundColor: '#f8fafc', 
+                    border: '1px solid #e2e8f0',
+                    borderRadius: '8px'
+                  }}
+                />
                 <Legend />
-                <Line 
-                  type="monotone" 
+                <Bar 
                   dataKey="eventGrowth" 
-                  stroke="#10B981" 
-                  strokeWidth={3}
+                  fill="#10B981" 
                   name="Event Growth %"
+                  radius={[2, 2, 0, 0]}
                 />
-                <Line 
-                  type="monotone" 
+                <Bar 
                   dataKey="pointsGrowth" 
-                  stroke="#3B82F6" 
-                  strokeWidth={3}
+                  fill="#3B82F6" 
                   name="Points Growth %"
+                  radius={[2, 2, 0, 0]}
                 />
-              </LineChart>
+              </BarChart>
             </ResponsiveContainer>
+            <div className="mt-4 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-500">
+              <p className="text-sm text-blue-800">
+                <strong>New Growth Method:</strong> We compare the first N days of this month to the first N days of last month for a fair apple-to-apple comparison. 
+                "New activity" means departments that had no events in the comparison period last month but have events now.
+              </p>
+            </div>
           </div>
         </div>
 
@@ -369,7 +422,32 @@ const DepartmentAnalyticsPage = ({ userData, handleBackToDashboard }) => {
               }`}>
                 <h4 className="font-semibold text-gray-800">{dept.department}</h4>
                 <p className="text-sm text-gray-600">Rank #{dept.rank}</p>
-                <p className={`text-xs mt-1 ${
+                
+                {/* Growth Details */}
+                <div className="mt-2 text-xs space-y-1">
+                  <div className="flex justify-between">
+                    <span>Events:</span>
+                    <span className="font-medium">{dept.eventGrowthLabel}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Points:</span>
+                    <span className="font-medium">{dept.pointsGrowthLabel}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Period:</span>
+                    <span className="text-gray-600">{dept.comparisonPeriod}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Current:</span>
+                    <span className="text-gray-600">{dept.currentPeriodEvents} events</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span>Last month:</span>
+                    <span className="text-gray-600">{dept.priorPeriodEvents} events</span>
+                  </div>
+                </div>
+
+                <p className={`text-xs mt-2 pt-2 border-t ${
                   dept.trend === 'up' ? 'text-green-700' : 
                   dept.trend === 'down' ? 'text-red-700' : 
                   'text-yellow-700'

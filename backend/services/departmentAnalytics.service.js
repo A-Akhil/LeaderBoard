@@ -335,14 +335,117 @@ class DepartmentAnalyticsService {
           const currentPoints = currentMonthPoints[0]?.totalPoints || 0;
           const previousPoints = previousMonthPoints[0]?.totalPoints || 0;
 
-          // Calculate growth percentages
-          const eventGrowth = previousMonthEvents > 0 ? 
-            Math.round(((currentMonthEvents - previousMonthEvents) / previousMonthEvents) * 100) : 
-            (currentMonthEvents > 0 ? 100 : 0);
+          // NEW APPROACH: First N Days Comparison
+          // Compare first N days of current month to first N days of previous month
+          const today = new Date();
+          const currentDay = today.getDate(); // N = current day of month (1-31)
+          
+          // Current period: First N days of current month (e.g., June 1-10 if today is June 10)
+          const currentMonthStart = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1);
+          const currentPeriodEnd = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), currentDay);
+          
+          // Prior period: First N days of previous month (e.g., May 1-10)
+          const previousMonthStart = new Date(previousMonth.getFullYear(), previousMonth.getMonth(), 1);
+          const previousPeriodEnd = new Date(previousMonth.getFullYear(), previousMonth.getMonth(), currentDay);
 
-          const pointsGrowth = previousPoints > 0 ? 
-            Math.round(((currentPoints - previousPoints) / previousPoints) * 100) : 
-            (currentPoints > 0 ? 100 : 0);
+          // Count events in current period (first N days of current month)
+          const currentPeriodEvents = await Event.countDocuments({
+            department: dept,
+            status: 'Approved',
+            date: {
+              $gte: currentMonthStart,
+              $lt: currentPeriodEnd
+            }
+          });
+
+          // Count events in prior period (first N days of previous month)
+          const priorPeriodEvents = await Event.countDocuments({
+            department: dept,
+            status: 'Approved',
+            date: {
+              $gte: previousMonthStart,
+              $lt: previousPeriodEnd
+            }
+          });
+
+          // Get points for current period
+          const currentPeriodPointsResult = await Event.aggregate([
+            {
+              $match: {
+                department: dept,
+                status: 'Approved',
+                date: {
+                  $gte: currentMonthStart,
+                  $lt: currentPeriodEnd
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                totalPoints: { $sum: "$pointsEarned" }
+              }
+            }
+          ]);
+
+          // Get points for prior period
+          const priorPeriodPointsResult = await Event.aggregate([
+            {
+              $match: {
+                department: dept,
+                status: 'Approved',
+                date: {
+                  $gte: previousMonthStart,
+                  $lt: previousPeriodEnd
+                }
+              }
+            },
+            {
+              $group: {
+                _id: null,
+                totalPoints: { $sum: "$pointsEarned" }
+              }
+            }
+          ]);
+
+          const currentPeriodPoints = currentPeriodPointsResult[0]?.totalPoints || 0;
+          const priorPeriodPoints = priorPeriodPointsResult[0]?.totalPoints || 0;
+
+          // Calculate growth using the new approach
+          let eventGrowth = 0;
+          let pointsGrowth = 0;
+          let eventGrowthLabel = '';
+          let pointsGrowthLabel = '';
+
+          // Handle event growth calculation
+          if (priorPeriodEvents === 0) {
+            if (currentPeriodEvents === 0) {
+              eventGrowth = 0;
+              eventGrowthLabel = `0% (no activity both periods)`;
+            } else {
+              eventGrowth = null; // Special case for "new activity"
+              eventGrowthLabel = `New activity (${currentPeriodEvents} events vs 0 last month)`;
+            }
+          } else {
+            eventGrowth = Math.round(((currentPeriodEvents - priorPeriodEvents) / priorPeriodEvents) * 100);
+            const sign = eventGrowth > 0 ? '+' : '';
+            eventGrowthLabel = `${sign}${eventGrowth}%`;
+          }
+
+          // Handle points growth calculation (same logic)
+          if (priorPeriodPoints === 0) {
+            if (currentPeriodPoints === 0) {
+              pointsGrowth = 0;
+              pointsGrowthLabel = `0% (no points both periods)`;
+            } else {
+              pointsGrowth = null; // Special case for "new activity"
+              pointsGrowthLabel = `New points (${currentPeriodPoints} vs 0 last month)`;
+            }
+          } else {
+            pointsGrowth = Math.round(((currentPeriodPoints - priorPeriodPoints) / priorPeriodPoints) * 100);
+            const sign = pointsGrowth > 0 ? '+' : '';
+            pointsGrowthLabel = `${sign}${pointsGrowth}%`;
+          }
 
           // Get overall department totals
           const students = await Student.find({ department: dept }).select('totalPoints').lean();
