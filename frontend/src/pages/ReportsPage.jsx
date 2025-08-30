@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { 
-  PieChart, BarChart2, Users, Download, Filter
+  PieChart, BarChart2, Users, Download, Filter, Building2, Settings
 } from 'lucide-react';
 import { toast } from 'react-toastify'; // Add toast import if missing
 
@@ -11,13 +11,18 @@ import CategoriesSection from '../components/reports/CategoriesSection';
 import ClassAnalysisSection from '../components/reports/ClassAnalysisSection';
 import StudentsSection from '../components/reports/StudentsSection';
 import ReportsDownloadSection from '../components/reports/ReportsDownloadSection';
+import AssociateChairpersonReports from '../components/reports/AssociateChairpersonReports';
+import ChairpersonReports from '../components/reports/ChairpersonReports';
 
-const ReportsPage = ({ userData }) => {
+const ReportsPage = ({ userData: propUserData }) => {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [yearFilter, setYearFilter] = useState("");
   const [advisorYear, setAdvisorYear] = useState(null);
+  const [userData, setUserData] = useState(propUserData || null);
   const isAcademicAdvisor = userData?.role === "Academic Advisor";
+  const isAssociateChairperson = userData?.role === "Associate Chairperson";
+  const isChairperson = userData?.role === "Chairperson";
   const [error, setError] = useState(null);
   const [activeSection, setActiveSection] = useState('categories'); // Changed default to categories
   const [reportData, setReportData] = useState({
@@ -34,13 +39,66 @@ const ReportsPage = ({ userData }) => {
     prizeMoneyByClass: [] // HOD only
   });
 
-  // Sidebar navigation items - removed overview
-  const sidebarItems = [
-    { id: 'categories', label: 'Categories', icon: <PieChart size={20} /> },
-    { id: 'class-analysis', label: 'Class Analysis', icon: <BarChart2 size={20} /> },
-    { id: 'students', label: 'Students', icon: <Users size={20} /> },
-    { id: 'downloads', label: 'Downloads', icon: <Download size={20} /> }
-  ];
+  // Fetch user data if not provided as prop
+  useEffect(() => {
+    if (!userData) {
+      const fetchUserData = async () => {
+        try {
+          const authAxios = createAuthAxios();
+          if (!authAxios) return;
+          
+          const response = await authAxios.get('/teacher/profile');
+          if (response.data) {
+            setUserData(response.data);
+          }
+        } catch (error) {
+          console.error('Error fetching user data:', error);
+          navigate('/teacher-login');
+        }
+      };
+      
+      fetchUserData();
+    }
+  }, [userData, navigate]);
+
+  // Update active section based on user role
+  useEffect(() => {
+    if (userData) {
+      if (isChairperson) {
+        setActiveSection('chairperson-reports');
+      } else if (isAssociateChairperson) {
+        setActiveSection('associate-reports');
+      } else {
+        setActiveSection('categories');
+      }
+    }
+  }, [userData, isChairperson, isAssociateChairperson]);
+
+  // Sidebar navigation items - updated with new role-based items
+  const getSidebarItems = () => {
+    const baseItems = [
+      { id: 'categories', label: 'Categories', icon: <PieChart size={20} /> },
+      { id: 'class-analysis', label: 'Class Analysis', icon: <BarChart2 size={20} /> },
+      { id: 'students', label: 'Students', icon: <Users size={20} /> },
+      { id: 'downloads', label: 'Downloads', icon: <Download size={20} /> }
+    ];
+
+    if (isChairperson) {
+      return [
+        { id: 'chairperson-reports', label: 'Chairperson Dashboard', icon: <Building2 size={20} /> },
+        ...baseItems
+      ];
+    } else if (isAssociateChairperson) {
+      return [
+        { id: 'associate-reports', label: 'Associate Chair Dashboard', icon: <Settings size={20} /> },
+        ...baseItems
+      ];
+    }
+
+    return baseItems;
+  };
+
+  const sidebarItems = getSidebarItems();
 
   // Create authenticated axios instance
   const createAuthAxios = () => {
@@ -98,6 +156,13 @@ const ReportsPage = ({ userData }) => {
 
   // Main data fetching function
   const fetchReportsData = async () => {
+    // Skip data fetching for Chairperson and Associate Chairperson roles
+    // as they have their own data fetching mechanisms
+    if (isChairperson || isAssociateChairperson) {
+      setLoading(false);
+      return;
+    }
+
     setLoading(true);
     setError(null);
     
@@ -238,6 +303,10 @@ const ReportsPage = ({ userData }) => {
     }
     
     switch (activeSection) {
+      case 'chairperson-reports':
+        return <ChairpersonReports />;
+      case 'associate-reports':
+        return <AssociateChairpersonReports />;
       case 'categories':
         return <CategoriesSection 
           popularCategories={reportData.popularCategories}

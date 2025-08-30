@@ -52,7 +52,7 @@ function App() {
       </Route>
       
       {/* Other routes */}
-      <Route path='/reports' element={<ReportsPage />} />
+      <Route path='/reports' element={<TeacherProtectWrapper><ReportsPage /></TeacherProtectWrapper>} />
       <Route path='/events' element={<EventHistoryTable />} />
       <Route path='/admin-dashboard' element={<AdminDashboard />} />
       <Route path="/admin/feedback" element={<AdminFeedbackReview />} />
