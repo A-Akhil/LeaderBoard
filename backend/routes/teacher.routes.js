@@ -80,4 +80,9 @@ router.get('/verify', authMiddleware.authTeacher, (req, res) => {
 router.post('/upload-profile-image', authMiddleware.authTeacher, createProfileUploadMiddleware('teacher'), teacherController.uploadProfileImage);
 router.put('/update-profile-image', authMiddleware.authTeacher, teacherController.updateProfileImage);
 
+// Admin routes for teacher management
+router.get('/all', authMiddleware.authAdmin, teacherController.getAllTeachers);
+router.put('/:teacherId/role', authMiddleware.authAdmin, teacherController.updateTeacherRole);
+router.post('/register-with-role', authMiddleware.authAdmin, teacherController.registerTeacherWithRole);
+
 module.exports = router;

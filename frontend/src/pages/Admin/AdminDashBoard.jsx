@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Upload, Users, FileText, Download, UserPlus, Calendar, MessageSquare, Settings } from 'lucide-react';
+import { Upload, Users, FileText, Download, UserPlus, Calendar, MessageSquare, Settings, Shield } from 'lucide-react';
 import AdminUpcomingEventForm from '../../components/AdminUpcomingEventForm';
 import UpcomingEventsList from '../../components/UpcomingEventsList';
 import ReportsPage from '../ReportsPage';
 import AdminFeedbackReview from './AdminFeedbackReview';
 import EnumManagement from './EnumManagement';
+import UserManagement from '../../components/admin/UserManagement';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -273,6 +274,15 @@ const AdminDashboard = () => {
               Manage Upcoming Events
             </button>
             <button
+              onClick={() => setActiveTab('user-management')}
+              className={`w-full p-4 flex items-center gap-2 ${
+                activeTab === 'user-management' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+              }`}
+            >
+              <Shield size={20} />
+              User Management
+            </button>
+            <button
               onClick={() => setActiveTab('feedback')}
               className={`w-full p-4 flex items-center gap-2 ${
                 activeTab === 'feedback' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
@@ -412,6 +422,12 @@ const AdminDashboard = () => {
         {activeTab === 'reports' && (
           <div className="bg-white rounded-lg shadow">
             <ReportsPage />
+          </div>
+        )}
+
+        {activeTab === 'user-management' && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <UserManagement />
           </div>
         )}
 

@@ -456,3 +456,242 @@ module.exports.updateProfileImage = async (req, res) => {
     });
   }
 };
+
+// Admin functionality - Get all teachers
+exports.getAllTeachers = async (req, res) => {
+  try {
+    const teachers = await teacherModel.find({})
+      .select('-password -rawPassword')
+      .sort({ name: 1 });
+    
+    return res.status(200).json({
+      success: true,
+      teachers
+    });
+  } catch (error) {
+    console.error('Error in getAllTeachers:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Internal server error', 
+      error: error.message 
+    });
+  }
+};
+
+// Admin functionality - Update teacher role
+exports.updateTeacherRole = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const { role, department, managedDepartments } = req.body;
+
+    // Validate role
+    const validRoles = ['Faculty', 'Academic Advisor', 'HOD', 'Associate Chairperson', 'Chairperson'];
+    if (!validRoles.includes(role)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid role specified' 
+      });
+    }
+
+    // Get current teacher
+    const currentTeacher = await teacherModel.findById(teacherId);
+    if (!currentTeacher) {
+      return res.status(404).json({ 
+        success: false,
+        message: 'Teacher not found' 
+      });
+    }
+
+    // Role-specific validations
+    if (role === 'HOD' && currentTeacher.role !== 'HOD') {
+      const existingHOD = await teacherModel.findOne({ department, role: 'HOD', _id: { $ne: teacherId } });
+      if (existingHOD) {
+        return res.status(400).json({ 
+          success: false,
+          message: `HOD already exists for ${department} department` 
+        });
+      }
+    }
+
+    if (role === 'Chairperson' && currentTeacher.role !== 'Chairperson') {
+      const existingChairperson = await teacherModel.findOne({ role: 'Chairperson', _id: { $ne: teacherId } });
+      if (existingChairperson) {
+        return res.status(400).json({ 
+          success: false,
+          message: `Chairperson already exists` 
+        });
+      }
+    }
+
+    if (role === 'Associate Chairperson') {
+      if (!managedDepartments || !managedDepartments.length) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Associate Chairperson must have managed departments specified' 
+        });
+      }
+    }
+
+    // Prepare update data
+    const updateData = { role };
+
+    // Handle department for non-Chairperson roles
+    if (role !== 'Chairperson') {
+      if (!department) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Department is required for this role' 
+        });
+      }
+      updateData.department = department;
+    } else {
+      // Remove department for Chairperson
+      updateData.$unset = { department: 1 };
+    }
+
+    // Handle managed departments for Associate Chairperson
+    if (role === 'Associate Chairperson') {
+      updateData.managedDepartments = managedDepartments;
+    } else {
+      // Remove managed departments for other roles
+      if (!updateData.$unset) updateData.$unset = {};
+      updateData.$unset.managedDepartments = 1;
+    }
+
+    // Update teacher
+    const updatedTeacher = await teacherModel.findByIdAndUpdate(
+      teacherId,
+      updateData,
+      { new: true, runValidators: true }
+    ).select('-password -rawPassword');
+
+    return res.status(200).json({
+      success: true,
+      message: 'Teacher role updated successfully',
+      teacher: updatedTeacher
+    });
+  } catch (error) {
+    console.error('Error in updateTeacherRole:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Internal server error', 
+      error: error.message 
+    });
+  }
+};
+
+// Admin functionality - Register individual teacher with role
+exports.registerTeacherWithRole = async (req, res) => {
+  try {
+    const { name, email, password, registerNo, department, role, managedDepartments } = req.body;
+
+    // Validate required fields
+    if (!name || !email || !password || !registerNo) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Name, email, password, and register number are required' 
+      });
+    }
+
+    // Check if role is valid
+    const validRoles = ['Faculty', 'Academic Advisor', 'HOD', 'Associate Chairperson', 'Chairperson'];
+    const teacherRole = role || 'Faculty';
+    if (!validRoles.includes(teacherRole)) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Invalid role specified' 
+      });
+    }
+
+    // Role-specific validations
+    if (teacherRole === 'HOD') {
+      const existingHOD = await teacherModel.findOne({ department, role: 'HOD' });
+      if (existingHOD) {
+        return res.status(400).json({ 
+          success: false,
+          message: `HOD already exists for ${department} department` 
+        });
+      }
+    }
+
+    if (teacherRole === 'Chairperson') {
+      const existingChairperson = await teacherModel.findOne({ role: 'Chairperson' });
+      if (existingChairperson) {
+        return res.status(400).json({ 
+          success: false,
+          message: `Chairperson already exists` 
+        });
+      }
+    }
+
+    if (teacherRole === 'Associate Chairperson') {
+      if (!managedDepartments || !managedDepartments.length) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Associate Chairperson must have managed departments specified' 
+        });
+      }
+    }
+
+    // Check if teacher already exists
+    const existingTeacher = await teacherModel.findOne({ 
+      $or: [{ email }, { registerNo }] 
+    });
+    if (existingTeacher) {
+      return res.status(400).json({ 
+        success: false,
+        message: 'Teacher with this email or register number already exists' 
+      });
+    }
+
+    // Hash the password
+    const hashedPassword = await teacherModel.hashedPassword(password);
+
+    // Create new teacher
+    const teacherData = {
+      name,
+      email,
+      password: hashedPassword,
+      rawPassword: password, // For demo purposes only, remove in production
+      registerNo,
+      role: teacherRole
+    };
+
+    // Add department for roles that need it
+    if (teacherRole !== 'Chairperson') {
+      if (!department) {
+        return res.status(400).json({ 
+          success: false,
+          message: 'Department is required for this role' 
+        });
+      }
+      teacherData.department = department;
+    }
+
+    // Add managed departments for Associate Chairperson
+    if (teacherRole === 'Associate Chairperson') {
+      teacherData.managedDepartments = managedDepartments;
+    }
+
+    const newTeacher = new teacherModel(teacherData);
+    await newTeacher.save();
+
+    // Return without sensitive data
+    const responseTeacher = newTeacher.toObject();
+    delete responseTeacher.password;
+    delete responseTeacher.rawPassword;
+
+    return res.status(201).json({ 
+      success: true,
+      message: 'Teacher registered successfully',
+      teacher: responseTeacher
+    });
+  } catch (error) {
+    console.error('Error in registerTeacherWithRole:', error);
+    return res.status(500).json({ 
+      success: false,
+      message: 'Internal server error', 
+      error: error.message 
+    });
+  }
+};
