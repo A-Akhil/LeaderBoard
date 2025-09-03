@@ -7,37 +7,36 @@ const adminModel = require('../models/admin.model')
 
 
 module.exports.authStudent = async (req, res, next) => {
-    const token = req.cookies.token || req.headers.authorization?.split(' ')[ 1 ];
-
-    if (!token) {
-        return res.status(401).json({ message: 'Unauthorized Token missing' });
-    }
-
-
-    const isBlacklisted = await blackListTokenModel.findOne({ token: token });
-
-    if (isBlacklisted) {
-        return res.status(401).json({ message: 'Unauthorized' });
-    }
-
     try {
+        const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+
+        if (!token) {
+            return res.status(401).json({ message: 'Unauthorized: Token missing' });
+        }
+
+        const isBlacklisted = await blackListTokenModel.findOne({ token: token });
+
+        if (isBlacklisted) {
+            return res.status(401).json({ message: 'Unauthorized: Token blacklisted' });
+        }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        const student = await studentModel.findById(decoded._id)
+        const student = await studentModel.findById(decoded._id);
+
+        if (!student) {
+            return res.status(401).json({ message: 'Unauthorized: Student not found' });
+        }
 
         req.student = student;
-
         return next();
 
     } catch (err) {
-        return res.status(401).json({ message: 'Unauthorized' });
+        return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
 }
 
 module.exports.authTeacher = async (req, res, next) => {
     try {
-        // console.log("Auth headers:", req.headers.authorization); // Debug log
-        
         let token;
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
             token = req.headers.authorization.split(' ')[1];
@@ -46,31 +45,26 @@ module.exports.authTeacher = async (req, res, next) => {
         }
         
         if (!token) {
-            console.log("No token provided in request"); // Debug log
             return res.status(401).json({ message: 'Unauthorized: Token missing' });
         }
         
         const isBlacklisted = await blackListTokenModel.findOne({ token: token });
 
         if (isBlacklisted) {
-            return res.status(401).json({ message: 'Unauthorized' });
+            return res.status(401).json({ message: 'Unauthorized: Token blacklisted' });
         }
 
-        try {
-
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const teacher = await teacherModel.findById(decoded._id);
         
-            const teacher = await teacherModel.findById(decoded._id)
-            
-            req.teacher = teacher;
-
-            return next();
-
-        } catch (err) {
-            return res.status(401).json({ message: 'Unauthorized' });
+        if (!teacher) {
+            return res.status(401).json({ message: 'Unauthorized: Teacher not found' });
         }
-    } catch (error) {
-        console.error("Auth middleware error:", error); // Debug log
+        
+        req.teacher = teacher;
+        return next();
+
+    } catch (err) {
         return res.status(401).json({ message: 'Unauthorized: Invalid token' });
     }
 } 
@@ -78,13 +72,27 @@ module.exports.authTeacher = async (req, res, next) => {
 
 exports.authAdmin = async (req, res, next) => {
     try {
-      // Get token from header
-      const token = req.header('Authorization')?.replace('Bearer ', '');
+      // Get token from header or cookie
+      let token;
+      if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+          token = req.headers.authorization.split(' ')[1];
+      } else if (req.cookies && req.cookies.token) {
+          token = req.cookies.token;
+      }
       
       if (!token) {
         return res.status(401).json({ 
           success: false, 
           message: 'Authentication failed. No token provided.' 
+        });
+      }
+      
+      // Check if token is blacklisted
+      const isBlacklisted = await blackListTokenModel.findOne({ token: token });
+      if (isBlacklisted) {
+        return res.status(401).json({ 
+          success: false, 
+          message: 'Authentication failed. Token blacklisted.' 
         });
       }
       
