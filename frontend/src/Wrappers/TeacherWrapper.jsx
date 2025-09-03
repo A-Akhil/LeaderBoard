@@ -54,22 +54,20 @@ const TeacherProtectWrapper = ({ children }) => {
     const getReports = async (endpoint, params = {}) => {
         try {
             const token = localStorage.getItem("teacher-token");
-            console.log(`Making reports request to: ${endpoint} with token: ${token?.substring(0, 10)}...`);
+            if (!token) {
+                throw new Error('No authentication token found');
+            }
+            
             // Make sure we're using the configured reportsApi with auth headers
             const response = await reportsApi.get(endpoint, { 
                 params,
                 headers: {
-                    'Authorization': `Bearer ${token}` // Explicitly set the token here as well
+                    'Authorization': `Bearer ${token}`
                 }
             });
             return { success: true, data: response.data };
         } catch (error) {
-            console.error(`Error fetching from ${endpoint}:`, error);
-            // Log more detailed error information
-            if (error.response) {
-                console.error('Response data:', error.response.data);
-                console.error('Response status:', error.response.status);
-            }
+            console.error(`Error fetching from ${endpoint}:`, error.message);
             
             if (error.response?.status === 401) {
                 // If unauthorized, redirect to login
@@ -85,12 +83,9 @@ const TeacherProtectWrapper = ({ children }) => {
 
     useEffect(() => {
         if (!token) {
-            console.log("No token found in localStorage");
             navigate("/teacher-login");
             return;
         }
-        
-        console.log("Token found:", token.substring(0, 10) + "...");
 
         // First verify authentication
         const verifyAuth = async () => {
@@ -108,9 +103,6 @@ const TeacherProtectWrapper = ({ children }) => {
                         const teacherData = response.data;
                         setUserData(teacherData);
                         
-                        console.log("Teacher role:", teacherData.role);
-                        console.log("Current path:", location.pathname);
-                        
                         // If on reports page, don't redirect based on role
                         if (location.pathname.includes('/reports')) {
                             setLoading(false);
@@ -122,7 +114,6 @@ const TeacherProtectWrapper = ({ children }) => {
                             teacherData.role === 'Academic Advisor' || 
                             teacherData.role === 'Associate Chairperson' || 
                             teacherData.role === 'Chairperson') {
-                            console.log("Redirecting to advisor-hod-dashboard");
                             navigate("/advisor-hod-dashboard");
                             return;
                         }
@@ -131,7 +122,7 @@ const TeacherProtectWrapper = ({ children }) => {
                         setLoading(false);
                         
                     } catch (error) {
-                        console.error("Error checking role:", error);
+                        console.error("Authentication error");
                         localStorage.removeItem("teacher-token");
                         navigate("/teacher-login");
                     }
@@ -140,7 +131,7 @@ const TeacherProtectWrapper = ({ children }) => {
                 checkRoleAndRedirect();
                 
             } catch (error) {
-                console.error('Authentication failed:', error);
+                console.error('Authentication failed');
                 setIsAuthenticated(false);
                 localStorage.removeItem("teacher-token");
                 navigate("/teacher-login");

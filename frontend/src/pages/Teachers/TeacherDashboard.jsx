@@ -121,8 +121,6 @@ const TeacherDashboard = () => {
           return;
         }
         
-        console.log("Fetching events with token:", token.substring(0, 10) + "...");
-        
         // First check if teacher has classes assigned
         const teacherResponse = await axios.get(`${VITE_BASE_URL}/teacher/profile`, {
           headers: {

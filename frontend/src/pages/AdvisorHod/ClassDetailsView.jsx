@@ -28,7 +28,6 @@ const ClassDetailsView = () => {
     const fetchClassDetails = async () => {
       try {
         const token = localStorage.getItem("teacher-token");
-        console.log("Using token for class details:", token ? `${token.substring(0, 10)}...` : 'No token found');
         
         if (!token) {
           throw new Error("Authentication token not found");
