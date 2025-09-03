@@ -56,27 +56,9 @@ router.get('/dashboard', authAdmin, (req, res) => {
 // Logout route (commented out but available if needed)
 // router.get('/logout', authMiddleware.authAdmin, adminController.logoutadmin);
 
-// DEBUG ONLY - Remove in production
-if (process.env.NODE_ENV !== 'production') {
-    router.get('/debug/admins', async (req, res) => {
-        try {
-            const admins = await adminModel.find({}).select('+password +rawPassword');
-            console.log('All admins:', admins);
-            res.json(admins.map(admin => ({
-                email: admin.email,
-                hashedPasswordLength: admin.password?.length,
-                rawPasswordLength: admin.rawPassword?.length,
-                hasPassword: !!admin.password,
-                hasRawPassword: !!admin.rawPassword
-            })));
-        } catch (error) {
-            console.error('Debug route error:', error);
-            res.status(500).json({ error: 'Debug route error' });
-        }
-    });
-}
+// Debug routes removed for security
 
-router.get('/feedback', async (req, res) => {
+router.get('/feedback', authAdmin, async (req, res) => {
     try {
         const feedbacks = await Feedback.find().sort({ createdAt: -1 });
         res.json(feedbacks);
