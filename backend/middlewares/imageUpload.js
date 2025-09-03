@@ -22,11 +22,30 @@ const storage = multer.diskStorage({
 // Rest of the middleware
 const fileFilter = (req, file, cb) => {
   const allowedTypes = ['image/jpeg', 'image/png'];
-  if (allowedTypes.includes(file.mimetype)) {
-    cb(null, true);
-  } else {
-    cb(new Error('Only JPEG, PNG and GIF images are allowed!'), false);
+  const allowedExtensions = ['.jpg', '.jpeg', '.png'];
+  
+  // Check MIME type
+  if (!allowedTypes.includes(file.mimetype)) {
+    cb(new Error('Only JPEG and PNG images are allowed!'), false);
+    return;
   }
+  
+  // Check file extension as additional security
+  const fileExtension = path.extname(file.originalname).toLowerCase();
+  if (!allowedExtensions.includes(fileExtension)) {
+    cb(new Error('Invalid file extension. Only .jpg, .jpeg, .png are allowed!'), false);
+    return;
+  }
+  
+  // Check for double extensions (e.g., .jpg.php)
+  const fileName = file.originalname.toLowerCase();
+  const suspiciousExtensions = ['.php', '.js', '.html', '.exe', '.bat', '.sh'];
+  if (suspiciousExtensions.some(ext => fileName.includes(ext))) {
+    cb(new Error('Suspicious file detected!'), false);
+    return;
+  }
+  
+  cb(null, true);
 };
 
 const upload = multer({
