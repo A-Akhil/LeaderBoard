@@ -272,7 +272,7 @@ exports.getClassesByDepartment = async (department) => {
  */
 exports.getStudentsByClass = async (classId) => {
     return await studentModel.find({ 'currentClass.ref': classId })
-        .select('-password -rawPassword');
+        .select('-password');
 };
 
 exports.addStudentsToClass = async (classId, studentIds) => {

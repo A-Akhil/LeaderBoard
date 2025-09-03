@@ -25,7 +25,6 @@ exports.createTeacher = async (teacherData) => {
         name,
         email,
         password: hashedPassword,
-        rawPassword: password, // For development only
         registerNo,
         department,
         role: role || 'Faculty'
@@ -40,7 +39,7 @@ exports.createTeacher = async (teacherData) => {
  */
 exports.getTeachersByRole = async (filter = {}) => {
     return await teacherModel.find(filter)
-        .select('-password -rawPassword')
+        .select('-password')
         .populate('classes');
 };
 
@@ -108,7 +107,6 @@ module.exports.changePassword = async (teacherId, oldPassword, newPassword) => {
 
         const hashedPassword = await teacherModel.hashedPassword(newPassword);
         teacher.password = hashedPassword;
-        teacher.rawPassword = newPassword; // Save the new raw password
         await teacher.save();
         return teacher;
     } catch (error) {

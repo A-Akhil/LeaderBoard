@@ -174,7 +174,6 @@ exports.registerStudent = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            rawPassword: password, // For demo purposes only, remove in production
             registerNo,
             course,
             program,
@@ -210,7 +209,7 @@ exports.getStudentsByDepartment = async (req, res) => {
         if (section) filter['currentClass.section'] = section;
         
         const students = await studentModel.find(filter)
-            .select('-password -rawPassword')
+            .select('-password')
             .populate({
                 path: 'currentClass.ref',
                 select: 'year section academicYear'

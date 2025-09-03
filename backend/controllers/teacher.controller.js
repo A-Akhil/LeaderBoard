@@ -73,7 +73,6 @@ exports.registerTeacher = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            rawPassword: password, // For demo purposes only, remove in production
             registerNo,
             role: role || 'Faculty'
         };
@@ -112,7 +111,7 @@ exports.getTeachersByRole = async (req, res) => {
         if (department) filter.department = department;
         
         const teachers = await teacherModel.find(filter)
-            .select('-password -rawPassword')
+            .select('-password')
             .populate('classes');
             
         return res.status(200).json(teachers);
