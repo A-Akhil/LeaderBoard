@@ -17,10 +17,6 @@ const adminSchema = new mongoose.Schema({
         required: true,
         select: false
     },
-    rawPassword: { 
-        type: String,
-        select: false // Hide raw password from queries by default
-    },
     role: {
         type: String,
         enum: ['Super Admin', 'Department Admin'],
