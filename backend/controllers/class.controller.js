@@ -3,7 +3,8 @@ const path = require('path');
 const csv = require('csv-parser');
 const classModel = require('../models/class.model'); // Add this import
 const teacherModel = require('../models/teacher.model');
-const studentModel = require('../models/student.model')
+const studentModel = require('../models/student.model');
+const metadataCache = require('../utils/metadataCache');
 const classService = require('../services/class.service');
 
 // Consolidated createClass function
@@ -225,12 +226,6 @@ exports.createClassesBulk = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
-        const results = {
-            successful: [],
-            failed: [],
-            failedEntries: []
-        };
-
         const rows = [];
         await new Promise((resolve, reject) => {
             fs.createReadStream(req.file.path)
@@ -239,63 +234,103 @@ exports.createClassesBulk = async (req, res) => {
                 .on('end', resolve)
                 .on('error', reject);
         });
+        const results = {
+            successful: [],
+            failed: [],
+            failedEntries: []
+        };
 
-        for (const data of rows) {
+        for (const rawRow of rows) {
+            const row = { ...rawRow };
+            const issues = [];
+
+            const year = rawRow.year ? Number.parseInt(rawRow.year, 10) : Number.NaN;
+            if (!rawRow.year || Number.isNaN(year)) {
+                issues.push('Year is required and must be a number');
+            }
+
+            const section = rawRow.section ? rawRow.section.toString().trim().toUpperCase() : '';
+            if (!section) {
+                issues.push('Section is required');
+            }
+
+            const academicYear = rawRow.academicYear ? rawRow.academicYear.toString().trim() : '';
+            if (!academicYear) {
+                issues.push('Academic year is required');
+            }
+
+            const department = rawRow.department ? rawRow.department.toString().trim().toUpperCase() : '';
+            if (!department) {
+                issues.push('Department is required');
+            }
+
+            if (issues.length > 0) {
+                results.failedEntries.push({ class: row, error: issues.join('; ') });
+                continue;
+            }
+
             try {
-                // Validate required fields
-                if (!data.year || !data.section || !data.academicYear || !data.department) {
+                const departmentConfig = await metadataCache.getDepartmentByCode(department);
+                if (!departmentConfig || departmentConfig.isActive === false) {
                     results.failedEntries.push({
-                        class: data,
-                        error: 'Missing required fields'
+                        class: row,
+                        error: `Department ${department} is not configured`
                     });
                     continue;
                 }
 
-                // Check if class already exists
                 const existingClass = await classModel.findOne({
-                    year: data.year,
-                    section: data.section,
-                    academicYear: data.academicYear,
-                    department: data.department
+                    year,
+                    section,
+                    academicYear,
+                    department
                 });
 
                 if (existingClass) {
                     results.failedEntries.push({
-                        class: data,
+                        class: row,
                         error: 'Class already exists'
                     });
                     continue;
                 }
 
-                // Create new class
-                const newClass = new classModel({
-                    year: parseInt(data.year),
-                    section: data.section,
-                    academicYear: data.academicYear,
-                    department: data.department,
+                const createdClass = new classModel({
+                    year,
+                    section,
+                    academicYear,
+                    department,
                     assignedFaculty: [],
                     students: [],
                     facultyAssigned: [],
                     academicAdvisors: []
                 });
 
-                await newClass.save();
+                await createdClass.save();
+
                 results.successful.push({
-                    id: newClass._id,
-                    year: newClass.year,
-                    section: newClass.section,
-                    department: newClass.department
+                    id: createdClass._id,
+                    year: createdClass.year,
+                    section: createdClass.section,
+                    academicYear: createdClass.academicYear,
+                    department: createdClass.department
                 });
             } catch (error) {
                 console.error('Error processing class:', error);
+                let message = error.message || 'Unknown error while creating class';
+
+                if (error.name === 'ValidationError' && error.errors) {
+                    message = Object.values(error.errors)
+                        .map((validationError) => validationError.message)
+                        .join('; ');
+                }
+
                 results.failedEntries.push({
-                    class: data,
-                    error: error.message
+                    class: row,
+                    error: message
                 });
             }
         }
 
-        // Clean up uploaded file
         fs.unlinkSync(req.file.path);
 
         return res.status(200).json({

@@ -2,33 +2,71 @@ const { model } = require('mongoose')
 const teacherModel = require('../models/teacher.model')
 const classModel = require('../models/class.model');
 const bcrypt = require('bcrypt');
+const metadataCache = require('../utils/metadataCache');
 
 /**
  * Create a new teacher with role-based validation
  */
 exports.createTeacher = async (teacherData) => {
-    const { name, email, password, registerNo, department, role } = teacherData;
-    
-    // Check if HOD already exists for this department if registering as HOD
-    if (role === 'HOD') {
-        const existingHOD = await teacherModel.findOne({ department, role: 'HOD' });
-        if (existingHOD) {
-            throw new Error(`HOD already exists for ${department} department`);
+    const { name, email, password, registerNo, department, role, managedDepartments } = teacherData;
+
+    const departmentCode = department ? department.toString().trim().toUpperCase() : '';
+    if (role !== 'Chairperson') {
+        if (!departmentCode) {
+            throw new Error('Department is required for the selected role');
+        }
+
+        const departmentConfig = await metadataCache.getDepartmentByCode(departmentCode);
+        if (!departmentConfig || departmentConfig.isActive === false) {
+            throw new Error(`Department ${departmentCode} is not available`);
         }
     }
+
+    let managedDepartmentCodes = [];
+    if (Array.isArray(managedDepartments) && managedDepartments.length > 0) {
+        const validationResults = await Promise.all(managedDepartments.map(async (dept) => {
+            const code = dept.toString().trim().toUpperCase();
+            const departmentConfig = await metadataCache.getDepartmentByCode(code);
+            return { code, isValid: !!departmentConfig && departmentConfig.isActive !== false };
+        }));
+
+        const invalid = validationResults.find((result) => !result.isValid);
+        if (invalid) {
+            throw new Error(`Managed department ${invalid.code} is not available`);
+        }
+
+        managedDepartmentCodes = [...new Set(validationResults.map((result) => result.code))];
+    }
+
+    if (role === 'HOD') {
+        const existingHOD = await teacherModel.findOne({ department: departmentCode, role: 'HOD' });
+        if (existingHOD) {
+            throw new Error(`HOD already exists for ${departmentCode} department`);
+        }
+    }
+
+    if (role === 'Chairperson') {
+        const existingChairperson = await teacherModel.findOne({ role: 'Chairperson' });
+        if (existingChairperson) {
+            throw new Error('Chairperson already exists');
+        }
+    }
+
+    if (role === 'Associate Chairperson' && managedDepartmentCodes.length === 0) {
+        throw new Error('Associate Chairperson must have managed departments specified');
+    }
     
-    // Hash password
     const hashedPassword = await teacherModel.hashedPassword(password);
     
-    // Create teacher
     const teacher = new teacherModel({
         name,
         email,
         password: hashedPassword,
-        rawPassword: password, // For development only
+        rawPassword: password,
         registerNo,
-        department,
-        role: role || 'Faculty'
+        department: role !== 'Chairperson' ? departmentCode : undefined,
+        role: role || 'Faculty',
+        managedDepartments: managedDepartmentCodes
     });
     
     await teacher.save();

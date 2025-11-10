@@ -9,6 +9,7 @@ const TeacherBulkService = require('../services/teacherBulk.services');
 const BlacklistToken = require('../models/blacklistToken.model');
 const studentModel = require('../models/student.model'); // Add this import
 const classModel = require('../models/class.model'); // Make sure class model is imported
+const metadataCache = require('../utils/metadataCache');
 const { validationResult } = require('express-validator');
 
 // Ensure uploads directory exists
@@ -32,12 +33,40 @@ exports.registerTeacher = async (req, res) => {
             return res.status(400).json({ message: 'Invalid role specified' });
         }
 
+        const departmentCode = department ? department.toString().trim().toUpperCase() : '';
+        if (role !== 'Chairperson') {
+            if (!departmentCode) {
+                return res.status(400).json({ message: 'Department is required for the selected role' });
+            }
+
+            const departmentConfig = await metadataCache.getDepartmentByCode(departmentCode);
+            if (!departmentConfig || departmentConfig.isActive === false) {
+                return res.status(400).json({ message: `Department ${departmentCode} is not available` });
+            }
+        }
+
+        let managedDepartmentCodes = [];
+        if (Array.isArray(managedDepartments) && managedDepartments.length > 0) {
+            const validationResults = await Promise.all(managedDepartments.map(async (dept) => {
+                const code = dept.toString().trim().toUpperCase();
+                const departmentConfig = await metadataCache.getDepartmentByCode(code);
+                return { code, isValid: !!departmentConfig && departmentConfig.isActive !== false };
+            }));
+
+            const invalid = validationResults.find((result) => !result.isValid);
+            if (invalid) {
+                return res.status(400).json({ message: `Managed department ${invalid.code} is not available` });
+            }
+
+            managedDepartmentCodes = [...new Set(validationResults.map((result) => result.code))];
+        }
+
         // Role-specific validations
         if (role === 'HOD') {
-            const existingHOD = await teacherModel.findOne({ department, role: 'HOD' });
+            const existingHOD = await teacherModel.findOne({ department: departmentCode, role: 'HOD' });
             if (existingHOD) {
                 return res.status(400).json({ 
-                    message: `HOD already exists for ${department} department` 
+                    message: `HOD already exists for ${departmentCode} department` 
                 });
             }
         }
@@ -68,27 +97,24 @@ exports.registerTeacher = async (req, res) => {
         // Hash the password
         const hashedPassword = await teacherModel.hashedPassword(password);
 
-        // Create new teacher
-        const teacherData = {
+        const teacherPayload = {
             name,
             email,
             password: hashedPassword,
-            rawPassword: password, // For demo purposes only, remove in production
+            rawPassword: password,
             registerNo,
             role: role || 'Faculty'
         };
 
-        // Add department for roles that need it
-        if (role !== 'Chairperson') {
-            teacherData.department = department;
+        if (role !== 'Chairperson' && departmentCode) {
+            teacherPayload.department = departmentCode;
         }
 
-        // Add managed departments for Associate Chairperson
-        if (role === 'Associate Chairperson') {
-            teacherData.managedDepartments = managedDepartments;
+        if (managedDepartmentCodes.length > 0) {
+            teacherPayload.managedDepartments = managedDepartmentCodes;
         }
 
-        const newTeacher = new teacherModel(teacherData);
+        const newTeacher = new teacherModel(teacherPayload);
 
         await newTeacher.save();
 
@@ -168,16 +194,6 @@ exports.registerTeachersBulk = async (req, res) => {
                         return;
                     }
 
-                    // Validate department
-                    const validDepartments = ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT'];
-                    if (!validDepartments.includes(data.department)) {
-                        results.failed.push({
-                            teacher: data,
-                            error: 'Invalid department'
-                        });
-                        return;
-                    }
-
                     // Validate role
                     const validRoles = ['Faculty', 'Academic Advisor', 'HOD', 'Associate Chairperson', 'Chairperson'];
                     if (!validRoles.includes(data.role)) {
@@ -188,13 +204,18 @@ exports.registerTeachersBulk = async (req, res) => {
                         return;
                     }
 
+                    const managedList = data.managedDepartments
+                        ? data.managedDepartments.split(',').map((value) => value.trim()).filter(Boolean)
+                        : [];
+
                     teachers.push({
-                        name: data.name,
-                        email: data.email,
+                        name: data.name.trim(),
+                        email: data.email.trim(),
                         password: data.password,
-                        registerNo: data.registerNo,
-                        department: data.department,
-                        role: data.role
+                        registerNo: data.registerNo.trim(),
+                        department: data.department ? data.department.trim().toUpperCase() : '',
+                        role: data.role,
+                        managedDepartments: managedList.map((value) => value.toUpperCase())
                     });
                 })
                 .on('end', () => {
@@ -210,11 +231,71 @@ exports.registerTeachersBulk = async (req, res) => {
         // Process valid teachers
         for (const teacherData of teachers) {
             try {
-                const hashedPassword = await bcrypt.hash(teacherData.password, 10);
+                const role = teacherData.role;
+                const departmentCode = teacherData.department;
+
+                if (role !== 'Chairperson') {
+                    if (!departmentCode) {
+                        throw new Error('Department is required for the selected role');
+                    }
+
+                    const departmentConfig = await metadataCache.getDepartmentByCode(departmentCode);
+                    if (!departmentConfig || departmentConfig.isActive === false) {
+                        throw new Error(`Department ${departmentCode} is not available`);
+                    }
+                }
+
+                let managedDepartmentCodes = [];
+                if (Array.isArray(teacherData.managedDepartments) && teacherData.managedDepartments.length > 0) {
+                    const validationResults = await Promise.all(teacherData.managedDepartments.map(async (code) => {
+                        const departmentConfig = await metadataCache.getDepartmentByCode(code);
+                        return { code, isValid: !!departmentConfig && departmentConfig.isActive !== false };
+                    }));
+
+                    const invalid = validationResults.find((result) => !result.isValid);
+                    if (invalid) {
+                        throw new Error(`Managed department ${invalid.code} is not available`);
+                    }
+
+                    managedDepartmentCodes = [...new Set(validationResults.map((result) => result.code))];
+                }
+
+                const existingTeacher = await teacherModel.findOne({ email: teacherData.email });
+                if (existingTeacher) {
+                    throw new Error('Teacher with this email already exists');
+                }
+
+                if (role === 'HOD') {
+                    const existingHOD = await teacherModel.findOne({ department: departmentCode, role: 'HOD' });
+                    if (existingHOD) {
+                        throw new Error(`HOD already exists for ${departmentCode} department`);
+                    }
+                }
+
+                if (role === 'Chairperson') {
+                    const existingChairperson = await teacherModel.findOne({ role: 'Chairperson' });
+                    if (existingChairperson) {
+                        throw new Error('Chairperson already exists');
+                    }
+                }
+
+                if (role === 'Associate Chairperson' && managedDepartmentCodes.length === 0) {
+                    throw new Error('Associate Chairperson must have managed departments specified');
+                }
+
+                const hashedPassword = await teacherModel.hashedPassword(teacherData.password);
+
                 const teacher = new teacherModel({
-                    ...teacherData,
-                    password: hashedPassword
+                    name: teacherData.name,
+                    email: teacherData.email,
+                    password: hashedPassword,
+                    rawPassword: teacherData.password,
+                    registerNo: teacherData.registerNo,
+                    department: role !== 'Chairperson' ? departmentCode : undefined,
+                    role: role || 'Faculty',
+                    managedDepartments: managedDepartmentCodes
                 });
+
                 await teacher.save();
                 results.successful.push({
                     name: teacher.name,

@@ -1,3 +1,5 @@
+require('./polyfills/slow-buffer');
+
 const dotenv = require('dotenv');
 // Load environment variables before any other imports
 dotenv.config();

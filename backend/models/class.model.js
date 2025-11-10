@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const metadataCache = require('../utils/metadataCache');
 
 const classSchema = new mongoose.Schema({
   year: { 
@@ -36,10 +37,17 @@ const classSchema = new mongoose.Schema({
       message: props => `${props.value} is not a valid academic year format! Use YYYY-YYYY format.`
     }
   },
-  department: { 
-    type: String, 
+  department: {
+    type: String,
     required: true,
-    enum: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT']
+    uppercase: true,
+    trim: true,
+    validate: {
+      validator: async function(value) {
+        return metadataCache.isValidDepartmentCode(value);
+      },
+      message: (props) => `${props.value} is not a configured department.`
+    }
   },
   assignedFaculty: [{ 
     type: mongoose.Schema.Types.ObjectId, 

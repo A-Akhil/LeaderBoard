@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const metadataCache = require('../utils/metadataCache');
 
 const studentSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -15,12 +16,17 @@ const studentSchema = new mongoose.Schema({
     },
     //added curnt year , course , isGraduvated Fields
     year: { type: Number, required: true }, 
-    course: { 
-        type: String, 
-        required: true, 
-        enum: ['BTech-CSE-AI', 'BTech-CSE-AIML', 'BTech-MECH', 'BTech-CIVIL', 'BTech-EEE', 'BTech-IT', 
-               'MTech-CSE', 'MTech-ECE', 'MTech-MECH', 'MTech-CIVIL', 'MTech-EEE', 'MTech-IT',
-               'MTech-Integrated-CSE-ws-CC', 'MTech-Integrated-CSE-ws-SWE'] // Add all your courses
+    course: {
+        type: String,
+        required: true,
+        uppercase: true,
+        trim: true,
+        validate: {
+            validator: async function(value) {
+                return metadataCache.isValidCourseCode(value);
+            },
+            message: (props) => `${props.value} is not a configured course.`
+        }
     },
     totalPoints: {
         type: Number,
@@ -34,15 +40,23 @@ const studentSchema = new mongoose.Schema({
     isGraduated: { type: Boolean, default: false },
     isArchived:{ type: Boolean, default: false },
     registrationYear: { type: Number, required: true },
-    program: { 
-        type: String, 
-        enum: ['BTech', 'MTech', 'MTech-Integrated'],
-        required: true 
-    },
-    department: { 
+    program: {
         type: String,
         required: true,
-        enum: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT', 'CINTEL'] // Add all your departments
+        uppercase: true,
+        trim: true
+    },
+    department: {
+        type: String,
+        required: true,
+        uppercase: true,
+        trim: true
+    },
+    programDurationYears: {
+        type: Number,
+        min: 1,
+        max: 5,
+        default: 4
     },
     currentClass: {
         year: { type: Number }, // Remove required
@@ -62,8 +76,17 @@ const studentSchema = new mongoose.Schema({
     achievements: [{ type: mongoose.Schema.Types.ObjectId, ref: 'Achievement' }]
 }, { timestamps: true });
 
+studentSchema.pre('validate', async function(next) {
+    try {
+        await this.syncMetadataFromCourse();
+        next();
+    } catch (error) {
+        next(error);
+    }
+});
+
 studentSchema.virtual('graduationYear').get(function () {
-    return this.course === 'MTech' ? 5 : 4; // MTech students graduate in year 5, others in year 4
+    return this.programDurationYears || 4;
 });
 
 // Add this pre-save hook to log class assignments
@@ -88,6 +111,56 @@ studentSchema.statics.hashedPassword = async function (password) {
     return await bcrypt.hash(password, 10);
 };
 
+studentSchema.methods.syncMetadataFromCourse = async function(force = false) {
+    if (!this.course) {
+        throw new Error('Course is required for a student record');
+    }
+
+    const courseCode = this.course.toString().trim().toUpperCase();
+    this.course = courseCode;
+
+    if (!force && !this.isModified('course') && this.program && this.department && this.programDurationYears) {
+        return;
+    }
+
+    const courseConfig = await metadataCache.getCourseByCode(courseCode);
+    if (!courseConfig || courseConfig.isActive === false) {
+        throw new Error(`Course ${courseCode} is not configured.`);
+    }
+
+    const programConfig = await metadataCache.getProgramByCode(courseConfig.programCode);
+    if (!programConfig || programConfig.isActive === false) {
+        throw new Error(`Program ${courseConfig.programCode} is not configured.`);
+    }
+
+    const departmentConfig = await metadataCache.getDepartmentByCode(courseConfig.departmentCode);
+    if (!departmentConfig || departmentConfig.isActive === false) {
+        throw new Error(`Department ${courseConfig.departmentCode} is not configured.`);
+    }
+
+    this.program = programConfig.code;
+    this.department = departmentConfig.code;
+    this.programDurationYears = programConfig.durationYears;
+};
+
+studentSchema.methods.getProgramDurationYears = async function() {
+    if (this.programDurationYears) {
+        return this.programDurationYears;
+    }
+
+    if (!this.program) {
+        return 4;
+    }
+
+    const programConfig = await metadataCache.getProgramByCode(this.program);
+    if (programConfig && programConfig.durationYears) {
+        this.programDurationYears = programConfig.durationYears;
+        return this.programDurationYears;
+    }
+
+    return 4;
+};
+
 // Add method to calculate current academic year
 studentSchema.methods.calculateCurrentYear = function() {
     const currentDate = new Date();
@@ -95,23 +168,22 @@ studentSchema.methods.calculateCurrentYear = function() {
     const currentMonth = currentDate.getMonth() + 1; // JavaScript months are 0-indexed
     
     let academicYear = currentYear - this.registrationYear;
-    
-    // If before May (assuming 5 is May), student is still in current year
-    // Otherwise, they advance to the next year
+    const maxYears = this.programDurationYears || 4;
+
     if (currentMonth < 5) {
-        return academicYear;
-    } else {
-        return Math.min(academicYear + 1, this.program === 'MTech' ? 5 : 4);
+        return Math.min(academicYear, maxYears);
     }
+
+    return Math.min(academicYear + 1, maxYears);
 };
 
 studentSchema.methods.advanceToNextYear = async function(academicYear) {
-    // Get current class data
+    const currentClassSnapshot = this.currentClass || {};
     const currentClassData = {
-        year: this.currentClass.year,
-        section: this.currentClass.section,
+        year: currentClassSnapshot.year,
+        section: currentClassSnapshot.section,
         academicYear: academicYear.replace(/\d{4}-/, (year) => `${parseInt(year) - 1}-`),
-        classRef: this.currentClass.ref
+        classRef: currentClassSnapshot.ref
     };
     
     // Add current class to history
@@ -119,30 +191,25 @@ studentSchema.methods.advanceToNextYear = async function(academicYear) {
     this.classHistory.push(currentClassData);
     
     // Calculate new year level
-    const newYearLevel = Math.min(this.currentClass.year + 1, 
-        this.program === 'MTech' ? 5 : 4);
+    const programDuration = await this.getProgramDurationYears();
+    const currentYearLevel = currentClassSnapshot.year || 1;
+    const newYearLevel = Math.min(currentYearLevel + 1, programDuration);
     
     // Set graduated flag if reached final year
-    if ((this.program === 'MTech' && newYearLevel === 5) ||
-        (this.program !== 'MTech' && newYearLevel === 4)) {
+    if (newYearLevel === programDuration) {
         this.isGraduated = true;
     }
     
     // Update current class properties
-    this.currentClass.year = newYearLevel;
+    if (!this.currentClass) {
+        this.currentClass = { year: newYearLevel };
+    } else {
+        this.currentClass.year = newYearLevel;
+    }
     // Note: section might change and would need to be assigned separately
     
     return this;
 };
-
-// Add method to get department from course
-studentSchema.pre('save', function(next) {
-    if (this.course) {
-        // Extract department from course (e.g., 'BTech-CSE' -> 'CSE')
-        this.department = this.course.split('-')[1];
-    }
-    next();
-});
 
 // Add a static method to help with debugging
 studentSchema.statics.checkClassAssignments = async function() {

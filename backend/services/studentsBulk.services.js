@@ -3,8 +3,6 @@ const fs = require('fs');
 const { generateRandomPassword } = require('../utils/passwordGenerator');
 const EmailService = require('./mail.services'); 
 const studentService = require('./student.service');
-const studentModel = require('../models/student.model');
-const teacherModel = require('../models/teacher.model');
 
 class StudentBulkService {
     // constructor() {
@@ -38,15 +36,21 @@ class StudentBulkService {
 
         for (const student of students) {
             try {
-                const password = generateRandomPassword(); // Generate raw password
-                const hashedPassword = await teacherModel.hashedPassword(password);
+                const password = student.password || generateRandomPassword();
+                if (!student.course) {
+                    throw new Error('Course is required for each student record');
+                }
 
                 const newStudent = await studentService.createStudent({
                     name: student.name,
                     email: student.email,
                     registerNo: student.registerNo,
-                    password: hashedPassword,
-                    rawPassword: password // Save the raw password
+                    password,
+                    rawPassword: password,
+                    course: student.course,
+                    year: student.year ? parseInt(student.year, 10) : undefined,
+                    registrationYear: student.registrationYear ? parseInt(student.registrationYear, 10) : undefined,
+                    currentClassId: student.currentClassId
                 });
 
                 // Email Service (Optional)

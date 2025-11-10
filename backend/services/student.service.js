@@ -1,51 +1,78 @@
 const studentModel = require('../models/student.model');
 const classModel = require('../models/class.model');
 const bcrypt = require('bcrypt');
+const metadataCache = require('../utils/metadataCache');
 
 /**
  * Create a new student with course and department
  */
 exports.createStudent = async (studentData) => {
-    const { 
-        name, email, password, registerNo, 
-        course, year, currentClassId 
+    const {
+        name,
+        email,
+        password,
+        registerNo,
+        course,
+        year,
+        currentClassId,
+        registrationYear,
+        rawPassword
     } = studentData;
-    
-    // Extract program and department from course
-    const courseParts = course.split('-');
-    if (courseParts.length !== 2) {
-        throw new Error('Invalid course format. Should be Program-Department (e.g., BTech-CSE)');
+
+    if (!course) {
+        throw new Error('Course is required');
     }
-    
-    const program = courseParts[0];
-    const department = courseParts[1];
-    
-    // Verify class exists
-    const classData = await classModel.findById(currentClassId);
-    if (!classData) {
-        throw new Error('Class not found');
+
+    const courseConfig = await metadataCache.getCourseByCode(course);
+    if (!courseConfig || courseConfig.isActive === false) {
+        throw new Error(`Course ${course} is not available`);
     }
-    
-    // Hash password
+
+    const programConfig = await metadataCache.getProgramByCode(courseConfig.programCode);
+    if (!programConfig || programConfig.isActive === false) {
+        throw new Error(`Program ${courseConfig.programCode} is not available`);
+    }
+
+    const departmentConfig = await metadataCache.getDepartmentByCode(courseConfig.departmentCode);
+    if (!departmentConfig || departmentConfig.isActive === false) {
+        throw new Error(`Department ${courseConfig.departmentCode} is not available`);
+    }
+
+    let classContext;
+    if (currentClassId) {
+        const classData = await classModel.findById(currentClassId);
+        if (!classData) {
+            throw new Error('Class not found');
+        }
+
+        if (classData.department !== departmentConfig.code) {
+            throw new Error('Class department does not match student department');
+        }
+
+        classContext = {
+            year: classData.year,
+            section: classData.section,
+            ref: currentClassId
+        };
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
-    
-    // Create student
+
     const student = new studentModel({
         name,
         email,
         password: hashedPassword,
-        rawPassword: password, // For development only
+        rawPassword: rawPassword || password,
         registerNo,
-        course,
-        program,
-        department,
-        currentClass: {
-            year: classData.year,
-            section: classData.section,
-            ref: currentClassId
-        }
+        course: courseConfig.code,
+        program: programConfig.code,
+        department: departmentConfig.code,
+        programDurationYears: programConfig.durationYears,
+        registrationYear: registrationYear || new Date().getFullYear(),
+        year: year || 1,
+        currentClass: classContext
     });
-    
+
     await student.save();
     return student;
 };

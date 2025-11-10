@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
+const metadataCache = require('../utils/metadataCache');
 
 const teacherSchema = new mongoose.Schema({
     name: { type: String, required: true },
@@ -15,18 +16,37 @@ const teacherSchema = new mongoose.Schema({
         enum: ['Faculty', 'Academic Advisor', 'HOD', 'Associate Chairperson', 'Chairperson'],
         default: 'Faculty'
     },
-    department: { 
-        type: String, 
+    department: {
+        type: String,
+        uppercase: true,
+        trim: true,
         required: function() {
-            // Department is required for all roles except Chairperson
             return this.role !== 'Chairperson';
         },
-        enum: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT','CINTEL'] // Add all your departments
+        validate: {
+            validator: async function(value) {
+                if (!value) {
+                    return this.role === 'Chairperson';
+                }
+                return metadataCache.isValidDepartmentCode(value);
+            },
+            message: (props) => `${props.value} is not a configured department.`
+        }
     },
     // For Associate Chairpersons - array of departments they manage
     managedDepartments: [{
         type: String,
-        enum: ['CSE', 'ECE', 'EEE', 'MECH', 'CIVIL', 'IT','CINTEL']
+        uppercase: true,
+        trim: true,
+        validate: {
+            validator: async function(value) {
+                if (!value) {
+                    return false;
+                }
+                return metadataCache.isValidDepartmentCode(value);
+            },
+            message: (props) => `${props.value} is not a configured department.`
+        }
     }],
     classes: [{
         type: mongoose.Schema.Types.ObjectId,
@@ -77,6 +97,18 @@ teacherSchema.methods.hasAccessToClass = function(classId) {
     // Faculty and Academic Advisors only have access to their assigned classes
     return this.classes.some(c => c.equals(classId));
 };
+
+teacherSchema.pre('save', function(next) {
+    if (this.department) {
+        this.department = this.department.toUpperCase().trim();
+    }
+
+    if (Array.isArray(this.managedDepartments) && this.managedDepartments.length > 0) {
+        this.managedDepartments = [...new Set(this.managedDepartments.map((dept) => dept.toUpperCase().trim()))];
+    }
+
+    next();
+});
 
 const teacherModel = mongoose.model('teacher', teacherSchema);
 
