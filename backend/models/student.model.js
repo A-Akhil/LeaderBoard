@@ -128,19 +128,14 @@ studentSchema.methods.syncMetadataFromCourse = async function(force = false) {
         throw new Error(`Course ${courseCode} is not configured.`);
     }
 
-    const programConfig = await metadataCache.getProgramByCode(courseConfig.programCode);
-    if (!programConfig || programConfig.isActive === false) {
-        throw new Error(`Program ${courseConfig.programCode} is not configured.`);
-    }
-
     const departmentConfig = await metadataCache.getDepartmentByCode(courseConfig.departmentCode);
     if (!departmentConfig || departmentConfig.isActive === false) {
         throw new Error(`Department ${courseConfig.departmentCode} is not configured.`);
     }
 
-    this.program = programConfig.code;
+    this.program = courseConfig.degreeType;
     this.department = departmentConfig.code;
-    this.programDurationYears = programConfig.durationYears;
+    this.programDurationYears = courseConfig.durationYears;
 };
 
 studentSchema.methods.getProgramDurationYears = async function() {
@@ -152,9 +147,10 @@ studentSchema.methods.getProgramDurationYears = async function() {
         return 4;
     }
 
-    const programConfig = await metadataCache.getProgramByCode(this.program);
-    if (programConfig && programConfig.durationYears) {
-        this.programDurationYears = programConfig.durationYears;
+    const courseConfig = await metadataCache.getCourseByCode(this.course);
+    if (courseConfig && courseConfig.durationYears) {
+        this.programDurationYears = courseConfig.durationYears;
+        this.program = courseConfig.degreeType;
         return this.programDurationYears;
     }
 

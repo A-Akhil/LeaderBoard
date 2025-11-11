@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
-const ProgramConfig = require('./programConfig.model');
 const DepartmentConfig = require('./departmentConfig.model');
+
+const DEGREE_TYPES = ['BTECH', 'MTECH', 'MTECH_INTEGRATED'];
 
 const courseConfigSchema = new mongoose.Schema({
     code: {
@@ -20,21 +21,12 @@ const courseConfigSchema = new mongoose.Schema({
         trim: true,
         default: null
     },
-    programCode: {
+    degreeType: {
         type: String,
         required: true,
         uppercase: true,
         trim: true,
-        validate: {
-            validator: async function(value) {
-                if (!value) {
-                    return false;
-                }
-                const exists = await ProgramConfig.exists({ code: value });
-                return !!exists;
-            },
-            message: (props) => `Program ${props.value} is not configured.`
-        }
+        enum: DEGREE_TYPES
     },
     departmentCode: {
         type: String,
@@ -52,7 +44,7 @@ const courseConfigSchema = new mongoose.Schema({
             message: (props) => `Department ${props.value} is not configured.`
         }
     },
-    yearSpan: {
+    durationYears: {
         type: Number,
         required: true,
         min: 1
@@ -63,17 +55,26 @@ const courseConfigSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
+courseConfigSchema.pre('validate', function(next) {
+    if (this.yearSpan && !this.durationYears) {
+        this.durationYears = this.yearSpan;
+    }
+    next();
+});
+
 courseConfigSchema.pre('save', function(next) {
     if (this.code) {
         this.code = this.code.toUpperCase().trim();
     }
-    if (this.programCode) {
-        this.programCode = this.programCode.toUpperCase().trim();
+    if (this.degreeType) {
+        this.degreeType = this.degreeType.toUpperCase().trim();
     }
     if (this.departmentCode) {
         this.departmentCode = this.departmentCode.toUpperCase().trim();
     }
     next();
 });
+
+courseConfigSchema.statics.DEGREE_TYPES = DEGREE_TYPES;
 
 module.exports = mongoose.model('CourseConfig', courseConfigSchema);

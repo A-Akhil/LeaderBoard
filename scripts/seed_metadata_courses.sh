@@ -50,11 +50,20 @@ IFS=$'\n'
 for entry in $courses_data; do
   [ -z "$entry" ] && continue
   IFS='|' read -r code name program department span <<< "$entry"
+  case "$span" in
+    4) degreeType="BTECH" ;;
+    5) degreeType="MTECH_INTEGRATED" ;;
+    2) degreeType="MTECH" ;;
+    *)
+      echo "Unsupported duration $span for course $code" >&2
+      continue
+      ;;
+  esac
   echo "Seeding course $code..."
   curl -s -X POST "$API_URL/api/metadata/courses" \
     -H "Authorization: Bearer $TOKEN" \
     -H "Content-Type: application/json" \
-    -d "{\"code\":\"$code\",\"name\":\"$name\",\"displayName\":\"$name\",\"programCode\":\"$program\",\"departmentCode\":\"$department\",\"yearSpan\":$span}" \
+    -d "{\"code\":\"$code\",\"name\":\"$name\",\"displayName\":\"$name\",\"degreeType\":\"$degreeType\",\"departmentCode\":\"$department\",\"durationYears\":$span}" \
     | sed '/^$/d'
   echo ""
 done

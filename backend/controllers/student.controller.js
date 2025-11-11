@@ -11,6 +11,7 @@ const StudentBulkService = require('../services/studentsBulk.services');
 const eventModel = require('../models/event.model');
 const csv = require('csv-parser');
 const bcrypt = require('bcrypt');
+const { parseBooleanFlag } = require('../utils/requestFlags');
 
 const uploadPath = path.join(__dirname, '../uploads');
 if (!fs.existsSync(uploadPath)) {
@@ -23,10 +24,14 @@ exports.registerStudentsBulk = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
+        const isDryRun = parseBooleanFlag(req.query.dryRun || req.query.preview || req.query.mode);
+        const shouldSkipExisting = parseBooleanFlag(req.query.skipExisting);
+
         const results = {
             successful: [],
-            failed: [],
-            failedEntries: []
+            failedEntries: [],
+            skippedEntries: [],
+            failed: []
         };
 
         const rows = [];
@@ -68,11 +73,10 @@ exports.registerStudentsBulk = async (req, res) => {
                     continue;
                 }
 
-                const programConfig = await metadataCache.getProgramByCode(courseConfig.programCode);
-                if (!programConfig || programConfig.isActive === false) {
+                if (!courseConfig.degreeType || !courseConfig.durationYears) {
                     results.failedEntries.push({
                         student: data,
-                        error: `Program ${courseConfig.programCode} is not available`
+                        error: `Course ${courseCode} is missing degree metadata`
                     });
                     continue;
                 }
@@ -110,9 +114,31 @@ exports.registerStudentsBulk = async (req, res) => {
                 });
 
                 if (existingStudent) {
+                    const duplicateMessage = 'Student with this email or register number already exists';
+                    if (shouldSkipExisting) {
+                        results.skippedEntries.push({
+                            student: data,
+                            message: duplicateMessage
+                        });
+                        continue;
+                    }
+
                     results.failedEntries.push({
                         student: data,
-                        error: 'Student with this email or register number already exists'
+                        error: duplicateMessage
+                    });
+                    continue;
+                }
+
+                if (isDryRun) {
+                    results.successful.push({
+                        name: data.name,
+                        email: data.email,
+                        registerNo: data.registerNo,
+                        course: courseConfig.code,
+                        department: departmentConfig.code,
+                        registrationYear,
+                        year: intakeYear
                     });
                     continue;
                 }
@@ -125,9 +151,9 @@ exports.registerStudentsBulk = async (req, res) => {
                     password: hashedPassword,
                     registerNo: data.registerNo,
                     course: courseConfig.code,
-                    program: programConfig.code,
+                    program: courseConfig.degreeType,
                     department: departmentConfig.code,
-                    programDurationYears: programConfig.durationYears,
+                    programDurationYears: courseConfig.durationYears,
                     registrationYear,
                     year: intakeYear
                 });
@@ -144,18 +170,37 @@ exports.registerStudentsBulk = async (req, res) => {
                     student: data,
                     error: error.message
                 });
+                results.failed.push({
+                    student: data,
+                    error: error.message
+                });
             }
         }
 
         // Clean up uploaded file
-        fs.unlinkSync(req.file.path);
+    fs.unlinkSync(req.file.path);
 
-        return res.status(200).json({
-            message: 'Bulk registration completed',
+    results.failed = results.failedEntries;
+
+    return res.status(200).json({
+            message: isDryRun ? 'Bulk registration validation completed' : 'Bulk registration completed',
+            mode: isDryRun ? 'dry-run' : 'commit',
             successful: results.successful.length,
             failed: results.failedEntries.length,
+            skipped: results.skippedEntries.length,
             failedEntries: results.failedEntries,
-            students: results.successful
+            skippedEntries: results.skippedEntries,
+            students: results.successful,
+            results: {
+                successful: results.successful.length,
+                failed: results.failedEntries.length,
+                skipped: results.skippedEntries.length,
+                details: {
+                    successful: results.successful,
+                    failedEntries: results.failedEntries,
+                    skippedEntries: results.skippedEntries
+                }
+            }
         });
     } catch (error) {
         console.error('Error in registerStudentsBulk:', error);
@@ -188,9 +233,8 @@ exports.registerStudent = async (req, res) => {
             return res.status(400).json({ message: `Invalid or inactive course: ${courseCode}` });
         }
 
-        const programConfig = await metadataCache.getProgramByCode(courseConfig.programCode);
-        if (!programConfig || programConfig.isActive === false) {
-            return res.status(400).json({ message: `Program ${courseConfig.programCode} is not available` });
+        if (!courseConfig.degreeType || !courseConfig.durationYears) {
+            return res.status(400).json({ message: `Course ${courseCode} is missing degree metadata` });
         }
 
         const departmentConfig = await metadataCache.getDepartmentByCode(courseConfig.departmentCode);
@@ -237,9 +281,9 @@ exports.registerStudent = async (req, res) => {
             rawPassword: password,
             registerNo,
             course: courseConfig.code,
-            program: programConfig.code,
+            program: courseConfig.degreeType,
             department: departmentConfig.code,
-            programDurationYears: programConfig.durationYears,
+            programDurationYears: courseConfig.durationYears,
             registrationYear: registrationYearValue,
             year: intakeYear,
             currentClass: classData ? {

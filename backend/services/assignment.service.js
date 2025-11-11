@@ -4,10 +4,12 @@ const classModel = require('../models/class.model');
 const bcrypt = require('bcrypt');
 
 class AssignmentService {
-    async assignStudentsToClasses(assignments) {
+    async assignStudentsToClasses(assignments, options = {}) {
+        const { dryRun = false, skipExisting = false } = options;
         const results = {
             successful: [],
-            failed: []
+            failedEntries: [],
+            skippedEntries: []
         };
 
         for (const assign of assignments) {
@@ -16,14 +18,43 @@ class AssignmentService {
                 const classData = await classModel.findOne({ className: assign.className });
 
                 if (!student || !classData) {
-                    results.failed.push({
-                        data: assign,
+                    results.failedEntries.push({
+                        assignment: assign,
                         error: !student ? 'Student not found' : 'Class not found'
                     });
                     continue;
                 }
 
-                // Update student's class
+                const alreadyAssigned =
+                    student.currentClass &&
+                    student.currentClass.ref &&
+                    student.currentClass.ref.toString() === classData._id.toString();
+
+                if (alreadyAssigned) {
+                    const duplicateMessage = 'Student already assigned to this class';
+                    if (skipExisting) {
+                        results.skippedEntries.push({
+                            assignment: assign,
+                            message: duplicateMessage
+                        });
+                        continue;
+                    }
+
+                    results.failedEntries.push({
+                        assignment: assign,
+                        error: duplicateMessage
+                    });
+                    continue;
+                }
+
+                if (dryRun) {
+                    results.successful.push({
+                        student: student.registerNo,
+                        class: classData.className
+                    });
+                    continue;
+                }
+
                 student.currentClass = {
                     year: classData.year,
                     section: classData.section,
@@ -31,7 +62,6 @@ class AssignmentService {
                 };
                 await student.save();
 
-                // Add student to class
                 classData.students.addToSet(student._id);
                 await classData.save();
 
@@ -40,49 +70,73 @@ class AssignmentService {
                     class: classData.className
                 });
             } catch (error) {
-                results.failed.push({
-                    data: assign,
+                results.failedEntries.push({
+                    assignment: assign,
                     error: error.message
                 });
             }
         }
+
+        results.failed = results.failedEntries;
         return results;
     }
 
-    async assignFacultyToClasses(assignments) {
+    async assignFacultyToClasses(assignments, options = {}) {
+        const { dryRun = false, skipExisting = false } = options;
         const results = {
             successful: [],
-            failed: []
+            failedEntries: [],
+            skippedEntries: []
         };
 
         for (const assign of assignments) {
             try {
-                // Find faculty and class
-                const faculty = await teacherModel.findOne({ 
+                const faculty = await teacherModel.findOne({
                     registerNo: assign.facultyRegNo,
                     role: 'Faculty'
                 });
                 const classData = await classModel.findOne({ className: assign.className });
 
                 if (!faculty || !classData) {
-                    results.failed.push({
+                    results.failedEntries.push({
                         assignment: assign,
                         error: !faculty ? 'Faculty not found' : 'Class not found'
                     });
                     continue;
                 }
 
-                // Update class with faculty
-                if (!classData.facultyAssigned.includes(faculty._id)) {
-                    classData.facultyAssigned.push(faculty._id);
-                    await classData.save();
+                const facultyAlreadyAssigned = classData.facultyAssigned.some((id) => id.toString() === faculty._id.toString());
+
+                if (facultyAlreadyAssigned) {
+                    const duplicateMessage = 'Faculty already assigned to this class';
+                    if (skipExisting) {
+                        results.skippedEntries.push({
+                            assignment: assign,
+                            message: duplicateMessage
+                        });
+                        continue;
+                    }
+
+                    results.failedEntries.push({
+                        assignment: assign,
+                        error: duplicateMessage
+                    });
+                    continue;
                 }
 
-                // Update faculty with class
-                if (!faculty.classes.includes(classData._id)) {
-                    faculty.classes.push(classData._id);
-                    await faculty.save();
+                if (dryRun) {
+                    results.successful.push({
+                        faculty: faculty.registerNo,
+                        class: classData.className
+                    });
+                    continue;
                 }
+
+                classData.facultyAssigned.addToSet(faculty._id);
+                await classData.save();
+
+                faculty.classes.addToSet(classData._id);
+                await faculty.save();
 
                 results.successful.push({
                     faculty: faculty.registerNo,
@@ -90,49 +144,73 @@ class AssignmentService {
                 });
             } catch (error) {
                 console.error('Error assigning faculty:', error);
-                results.failed.push({
+                results.failedEntries.push({
                     assignment: assign,
                     error: error.message
                 });
             }
         }
+
+        results.failed = results.failedEntries;
         return results;
     }
 
-    async assignAdvisorsToClasses(assignments) {
+    async assignAdvisorsToClasses(assignments, options = {}) {
+        const { dryRun = false, skipExisting = false } = options;
         const results = {
             successful: [],
-            failed: []
+            failedEntries: [],
+            skippedEntries: []
         };
 
         for (const assign of assignments) {
             try {
-                // Find advisor and class
-                const advisor = await teacherModel.findOne({ 
+                const advisor = await teacherModel.findOne({
                     registerNo: assign.advisorRegNo,
                     role: 'Academic Advisor'
                 });
                 const classData = await classModel.findOne({ className: assign.className });
 
                 if (!advisor || !classData) {
-                    results.failed.push({
+                    results.failedEntries.push({
                         assignment: assign,
                         error: !advisor ? 'Academic Advisor not found' : 'Class not found'
                     });
                     continue;
                 }
 
-                // Update class with advisor
-                if (!classData.academicAdvisors.includes(advisor._id)) {
-                    classData.academicAdvisors.push(advisor._id);
-                    await classData.save();
+                const advisorAlreadyAssigned = classData.academicAdvisors.some((id) => id.toString() === advisor._id.toString());
+
+                if (advisorAlreadyAssigned) {
+                    const duplicateMessage = 'Advisor already assigned to this class';
+                    if (skipExisting) {
+                        results.skippedEntries.push({
+                            assignment: assign,
+                            message: duplicateMessage
+                        });
+                        continue;
+                    }
+
+                    results.failedEntries.push({
+                        assignment: assign,
+                        error: duplicateMessage
+                    });
+                    continue;
                 }
 
-                // Update advisor with class
-                if (!advisor.classes.includes(classData._id)) {
-                    advisor.classes.push(classData._id);
-                    await advisor.save();
+                if (dryRun) {
+                    results.successful.push({
+                        advisor: advisor.registerNo,
+                        class: classData.className
+                    });
+                    continue;
                 }
+
+                classData.academicAdvisors.addToSet(advisor._id);
+                await classData.save();
+
+                advisor.classes.addToSet(classData._id);
+                await advisor.save();
 
                 results.successful.push({
                     advisor: advisor.registerNo,
@@ -140,12 +218,14 @@ class AssignmentService {
                 });
             } catch (error) {
                 console.error('Error assigning advisor:', error);
-                results.failed.push({
+                results.failedEntries.push({
                     assignment: assign,
                     error: error.message
                 });
             }
         }
+
+        results.failed = results.failedEntries;
         return results;
     }
 }

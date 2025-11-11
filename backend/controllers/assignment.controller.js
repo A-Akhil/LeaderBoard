@@ -1,6 +1,7 @@
 const assignmentService = require('../services/assignment.service');
 const csv = require('csv-parser');
 const fs = require('fs');
+const { parseBooleanFlag } = require('../utils/requestFlags');
 
 class AssignmentController {
     async assignStudentsToClasses(req, res) {
@@ -8,6 +9,9 @@ class AssignmentController {
             if (!req.file) {
                 return res.status(400).json({ message: 'No file uploaded' });
             }
+
+            const isDryRun = parseBooleanFlag(req.query.dryRun || req.query.preview || req.query.mode);
+            const shouldSkipExisting = parseBooleanFlag(req.query.skipExisting);
 
             const assignments = [];
             await new Promise((resolve, reject) => {
@@ -18,14 +22,33 @@ class AssignmentController {
                     .on('error', reject);
             });
 
-            const results = await assignmentService.assignStudentsToClasses(assignments);
+            const results = await assignmentService.assignStudentsToClasses(assignments, {
+                dryRun: isDryRun,
+                skipExisting: shouldSkipExisting
+            });
 
             // Clean up uploaded file
             fs.unlinkSync(req.file.path);
 
             return res.status(200).json({
-                message: 'Student assignments completed',
-                ...results
+                message: isDryRun ? 'Student assignment validation completed' : 'Student assignments completed',
+                mode: isDryRun ? 'dry-run' : 'commit',
+                successful: results.successful.length,
+                failed: results.failedEntries.length,
+                skipped: results.skippedEntries.length,
+                failedEntries: results.failedEntries,
+                skippedEntries: results.skippedEntries,
+                assignments: results.successful,
+                results: {
+                    successful: results.successful.length,
+                    failed: results.failedEntries.length,
+                    skipped: results.skippedEntries.length,
+                    details: {
+                        successful: results.successful,
+                        failedEntries: results.failedEntries,
+                        skippedEntries: results.skippedEntries
+                    }
+                }
             });
         } catch (error) {
             console.error('Error in assignStudentsToClasses:', error);
@@ -40,6 +63,9 @@ class AssignmentController {
                 return res.status(400).json({ message: 'No file uploaded' });
             }
 
+            const isDryRun = parseBooleanFlag(req.query.dryRun || req.query.preview || req.query.mode);
+            const shouldSkipExisting = parseBooleanFlag(req.query.skipExisting);
+
             const assignments = [];
             await new Promise((resolve, reject) => {
                 fs.createReadStream(req.file.path)
@@ -49,14 +75,33 @@ class AssignmentController {
                     .on('error', reject);
             });
 
-            const results = await assignmentService.assignFacultyToClasses(assignments);
+            const results = await assignmentService.assignFacultyToClasses(assignments, {
+                dryRun: isDryRun,
+                skipExisting: shouldSkipExisting
+            });
 
             // Clean up uploaded file
             fs.unlinkSync(req.file.path);
 
             return res.status(200).json({
-                message: 'Faculty assignments completed',
-                ...results
+                message: isDryRun ? 'Faculty assignment validation completed' : 'Faculty assignments completed',
+                mode: isDryRun ? 'dry-run' : 'commit',
+                successful: results.successful.length,
+                failed: results.failedEntries.length,
+                skipped: results.skippedEntries.length,
+                failedEntries: results.failedEntries,
+                skippedEntries: results.skippedEntries,
+                assignments: results.successful,
+                results: {
+                    successful: results.successful.length,
+                    failed: results.failedEntries.length,
+                    skipped: results.skippedEntries.length,
+                    details: {
+                        successful: results.successful,
+                        failedEntries: results.failedEntries,
+                        skippedEntries: results.skippedEntries
+                    }
+                }
             });
         } catch (error) {
             console.error('Error in assignFacultyToClasses:', error);
@@ -71,6 +116,9 @@ class AssignmentController {
                 return res.status(400).json({ message: 'No file uploaded' });
             }
 
+            const isDryRun = parseBooleanFlag(req.query.dryRun || req.query.preview || req.query.mode);
+            const shouldSkipExisting = parseBooleanFlag(req.query.skipExisting);
+
             const assignments = [];
             await new Promise((resolve, reject) => {
                 fs.createReadStream(req.file.path)
@@ -80,14 +128,33 @@ class AssignmentController {
                     .on('error', reject);
             });
 
-            const results = await assignmentService.assignAdvisorsToClasses(assignments);
+            const results = await assignmentService.assignAdvisorsToClasses(assignments, {
+                dryRun: isDryRun,
+                skipExisting: shouldSkipExisting
+            });
 
             // Clean up uploaded file
             fs.unlinkSync(req.file.path);
 
             return res.status(200).json({
-                message: 'Advisor assignments completed',
-                ...results
+                message: isDryRun ? 'Advisor assignment validation completed' : 'Advisor assignments completed',
+                mode: isDryRun ? 'dry-run' : 'commit',
+                successful: results.successful.length,
+                failed: results.failedEntries.length,
+                skipped: results.skippedEntries.length,
+                failedEntries: results.failedEntries,
+                skippedEntries: results.skippedEntries,
+                assignments: results.successful,
+                results: {
+                    successful: results.successful.length,
+                    failed: results.failedEntries.length,
+                    skipped: results.skippedEntries.length,
+                    details: {
+                        successful: results.successful,
+                        failedEntries: results.failedEntries,
+                        skippedEntries: results.skippedEntries
+                    }
+                }
             });
         } catch (error) {
             console.error('Error in assignAdvisorsToClasses:', error);

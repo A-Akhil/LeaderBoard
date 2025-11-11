@@ -1,12 +1,10 @@
 const CourseConfig = require('../models/courseConfig.model');
-const ProgramConfig = require('../models/programConfig.model');
 const DepartmentConfig = require('../models/departmentConfig.model');
 
 const TTL_MS = 5 * 60 * 1000; // Cache metadata lookups for five minutes
 
 const caches = {
     course: new Map(),
-    program: new Map(),
     department: new Map()
 };
 
@@ -55,13 +53,6 @@ const getCourseByCode = async (code) => {
     });
 };
 
-const getProgramByCode = async (code) => {
-    const normalisedCode = normaliseKey(code);
-    return loadAndCache('program', normalisedCode, async (lookupKey) => {
-        return ProgramConfig.findOne({ code: lookupKey });
-    });
-};
-
 const getDepartmentByCode = async (code) => {
     const normalisedCode = normaliseKey(code);
     return loadAndCache('department', normalisedCode, async (lookupKey) => {
@@ -77,11 +68,6 @@ const getDepartmentByCode = async (code) => {
 const isValidCourseCode = async (code) => {
     const course = await getCourseByCode(code);
     return !!course;
-};
-
-const isValidProgramCode = async (code) => {
-    const program = await getProgramByCode(code);
-    return !!program;
 };
 
 const isValidDepartmentCode = async (code) => {
@@ -103,10 +89,8 @@ const invalidateAllMetadata = () => {
 
 module.exports = {
     getCourseByCode,
-    getProgramByCode,
     getDepartmentByCode,
     isValidCourseCode,
-    isValidProgramCode,
     isValidDepartmentCode,
     invalidateMetadata,
     invalidateAllMetadata

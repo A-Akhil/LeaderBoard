@@ -6,6 +6,7 @@ const teacherModel = require('../models/teacher.model');
 const studentModel = require('../models/student.model');
 const metadataCache = require('../utils/metadataCache');
 const classService = require('../services/class.service');
+const { parseBooleanFlag } = require('../utils/requestFlags');
 
 // Consolidated createClass function
 exports.createClass = async (req, res) => {
@@ -226,6 +227,9 @@ exports.createClassesBulk = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
+        const isDryRun = parseBooleanFlag(req.query.dryRun || req.query.preview || req.query.mode);
+        const shouldSkipExisting = parseBooleanFlag(req.query.skipExisting);
+
         const rows = [];
         await new Promise((resolve, reject) => {
             fs.createReadStream(req.file.path)
@@ -234,10 +238,11 @@ exports.createClassesBulk = async (req, res) => {
                 .on('end', resolve)
                 .on('error', reject);
         });
+
         const results = {
             successful: [],
-            failed: [],
-            failedEntries: []
+            failedEntries: [],
+            skippedEntries: []
         };
 
         for (const rawRow of rows) {
@@ -264,6 +269,11 @@ exports.createClassesBulk = async (req, res) => {
                 issues.push('Department is required');
             }
 
+            row.year = year;
+            row.section = section;
+            row.academicYear = academicYear;
+            row.department = department;
+
             if (issues.length > 0) {
                 results.failedEntries.push({ class: row, error: issues.join('; ') });
                 continue;
@@ -287,9 +297,28 @@ exports.createClassesBulk = async (req, res) => {
                 });
 
                 if (existingClass) {
+                    const duplicateMessage = 'Class already exists';
+                    if (shouldSkipExisting) {
+                        results.skippedEntries.push({
+                            class: row,
+                            message: duplicateMessage
+                        });
+                        continue;
+                    }
+
                     results.failedEntries.push({
                         class: row,
-                        error: 'Class already exists'
+                        error: duplicateMessage
+                    });
+                    continue;
+                }
+
+                if (isDryRun) {
+                    results.successful.push({
+                        year,
+                        section,
+                        academicYear,
+                        department
                     });
                     continue;
                 }
@@ -312,7 +341,8 @@ exports.createClassesBulk = async (req, res) => {
                     year: createdClass.year,
                     section: createdClass.section,
                     academicYear: createdClass.academicYear,
-                    department: createdClass.department
+                    department: createdClass.department,
+                    className: createdClass.className
                 });
             } catch (error) {
                 console.error('Error processing class:', error);
@@ -334,11 +364,24 @@ exports.createClassesBulk = async (req, res) => {
         fs.unlinkSync(req.file.path);
 
         return res.status(200).json({
-            message: 'Bulk class creation completed',
+            message: isDryRun ? 'Bulk class validation completed' : 'Bulk class creation completed',
+            mode: isDryRun ? 'dry-run' : 'commit',
             successful: results.successful.length,
             failed: results.failedEntries.length,
+            skipped: results.skippedEntries.length,
             failedEntries: results.failedEntries,
-            classes: results.successful
+            skippedEntries: results.skippedEntries,
+            classes: results.successful,
+            results: {
+                successful: results.successful.length,
+                failed: results.failedEntries.length,
+                skipped: results.skippedEntries.length,
+                details: {
+                    successful: results.successful,
+                    failedEntries: results.failedEntries,
+                    skippedEntries: results.skippedEntries
+                }
+            }
         });
     } catch (error) {
         console.error('Error in createClassesBulk:', error);

@@ -11,6 +11,7 @@ const studentModel = require('../models/student.model'); // Add this import
 const classModel = require('../models/class.model'); // Make sure class model is imported
 const metadataCache = require('../utils/metadataCache');
 const { validationResult } = require('express-validator');
+const { parseBooleanFlag } = require('../utils/requestFlags');
 
 // Ensure uploads directory exists
 const uploadPath = path.join(__dirname, '../uploads');
@@ -171,35 +172,49 @@ exports.registerTeachersBulk = async (req, res) => {
             return res.status(400).json({ message: 'No file uploaded' });
         }
 
+        const isDryRun = parseBooleanFlag(req.query.dryRun || req.query.preview || req.query.mode);
+        const shouldSkipExisting = parseBooleanFlag(req.query.skipExisting);
+
         const results = {
             successful: [],
-            failed: []
+            failedEntries: [],
+            skippedEntries: []
         };
 
         const teachers = [];
-        
-        // Read CSV file
+        const validRoles = ['Faculty', 'Academic Advisor', 'HOD', 'Associate Chairperson', 'Chairperson'];
+
         await new Promise((resolve, reject) => {
             fs.createReadStream(req.file.path)
                 .pipe(csv())
                 .on('data', (data) => {
-                    console.log('Processing row:', data); // Add debugging
-                    // Validate required fields
-                    if (!data.name || !data.email || !data.password || 
-                        !data.registerNo || !data.department || !data.role) {
-                        results.failed.push({
+                    const name = data.name ? data.name.trim() : '';
+                    const email = data.email ? data.email.trim() : '';
+                    const password = data.password ? data.password : '';
+                    const registerNo = data.registerNo ? data.registerNo.trim() : '';
+                    const role = data.role ? data.role.trim() : '';
+                    const departmentCode = data.department ? data.department.trim().toUpperCase() : '';
+
+                    if (!name || !email || !password || !registerNo || !role) {
+                        results.failedEntries.push({
                             teacher: data,
                             error: 'Missing required fields'
                         });
                         return;
                     }
 
-                    // Validate role
-                    const validRoles = ['Faculty', 'Academic Advisor', 'HOD', 'Associate Chairperson', 'Chairperson'];
-                    if (!validRoles.includes(data.role)) {
-                        results.failed.push({
+                    if (!validRoles.includes(role)) {
+                        results.failedEntries.push({
                             teacher: data,
                             error: 'Invalid role'
+                        });
+                        return;
+                    }
+
+                    if (role !== 'Chairperson' && !departmentCode) {
+                        results.failedEntries.push({
+                            teacher: data,
+                            error: 'Department is required for the selected role'
                         });
                         return;
                     }
@@ -209,26 +224,19 @@ exports.registerTeachersBulk = async (req, res) => {
                         : [];
 
                     teachers.push({
-                        name: data.name.trim(),
-                        email: data.email.trim(),
-                        password: data.password,
-                        registerNo: data.registerNo.trim(),
-                        department: data.department ? data.department.trim().toUpperCase() : '',
-                        role: data.role,
+                        name,
+                        email,
+                        password,
+                        registerNo,
+                        department: departmentCode,
+                        role,
                         managedDepartments: managedList.map((value) => value.toUpperCase())
                     });
                 })
-                .on('end', () => {
-                    console.log('Finished reading CSV'); // Add debugging
-                    resolve();
-                })
-                .on('error', (error) => {
-                    console.error('CSV parsing error:', error); // Add debugging
-                    reject(error);
-                });
+                .on('end', resolve)
+                .on('error', reject);
         });
 
-        // Process valid teachers
         for (const teacherData of teachers) {
             try {
                 const role = teacherData.role;
@@ -260,9 +268,20 @@ exports.registerTeachersBulk = async (req, res) => {
                     managedDepartmentCodes = [...new Set(validationResults.map((result) => result.code))];
                 }
 
-                const existingTeacher = await teacherModel.findOne({ email: teacherData.email });
+                const existingTeacher = await teacherModel.findOne({
+                    $or: [{ email: teacherData.email }, { registerNo: teacherData.registerNo }]
+                });
+
                 if (existingTeacher) {
-                    throw new Error('Teacher with this email already exists');
+                    const duplicateMessage = 'Teacher with this email or register number already exists';
+                    if (shouldSkipExisting) {
+                        results.skippedEntries.push({
+                            teacher: teacherData,
+                            message: duplicateMessage
+                        });
+                        continue;
+                    }
+                    throw new Error(duplicateMessage);
                 }
 
                 if (role === 'HOD') {
@@ -283,6 +302,17 @@ exports.registerTeachersBulk = async (req, res) => {
                     throw new Error('Associate Chairperson must have managed departments specified');
                 }
 
+                if (isDryRun) {
+                    results.successful.push({
+                        name: teacherData.name,
+                        email: teacherData.email,
+                        registerNo: teacherData.registerNo,
+                        role,
+                        department: role !== 'Chairperson' ? departmentCode : undefined
+                    });
+                    continue;
+                }
+
                 const hashedPassword = await teacherModel.hashedPassword(teacherData.password);
 
                 const teacher = new teacherModel({
@@ -300,29 +330,45 @@ exports.registerTeachersBulk = async (req, res) => {
                 results.successful.push({
                     name: teacher.name,
                     email: teacher.email,
-                    registerNo: teacher.registerNo
+                    registerNo: teacher.registerNo,
+                    role: teacher.role,
+                    department: teacher.department
                 });
             } catch (error) {
-                results.failed.push({
+                results.failedEntries.push({
                     teacher: teacherData,
-                    error: error.message
+                    error: error.message || 'Unknown error'
                 });
             }
         }
 
-        // Clean up uploaded file
         fs.unlinkSync(req.file.path);
 
         return res.status(200).json({
-            message: 'Bulk registration completed',
+            message: isDryRun ? 'Bulk teacher validation completed' : 'Bulk registration completed',
+            mode: isDryRun ? 'dry-run' : 'commit',
+            successful: results.successful.length,
+            failed: results.failedEntries.length,
+            skipped: results.skippedEntries.length,
+            failedEntries: results.failedEntries,
+            skippedEntries: results.skippedEntries,
+            teachers: results.successful,
             results: {
                 successful: results.successful.length,
-                failed: results.failed.length,
-                details: results
+                failed: results.failedEntries.length,
+                skipped: results.skippedEntries.length,
+                details: {
+                    successful: results.successful,
+                    failedEntries: results.failedEntries,
+                    skippedEntries: results.skippedEntries
+                }
             }
         });
     } catch (error) {
         console.error('Error in registerTeachersBulk:', error);
+        if (req.file) {
+            fs.unlinkSync(req.file.path);
+        }
         return res.status(500).json({ message: 'Internal server error' });
     }
 };

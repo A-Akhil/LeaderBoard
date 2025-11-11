@@ -28,9 +28,8 @@ exports.createStudent = async (studentData) => {
         throw new Error(`Course ${course} is not available`);
     }
 
-    const programConfig = await metadataCache.getProgramByCode(courseConfig.programCode);
-    if (!programConfig || programConfig.isActive === false) {
-        throw new Error(`Program ${courseConfig.programCode} is not available`);
+    if (!courseConfig.degreeType || !courseConfig.durationYears) {
+        throw new Error(`Course ${course} is missing degree metadata`);
     }
 
     const departmentConfig = await metadataCache.getDepartmentByCode(courseConfig.departmentCode);
@@ -65,9 +64,9 @@ exports.createStudent = async (studentData) => {
         rawPassword: rawPassword || password,
         registerNo,
         course: courseConfig.code,
-        program: programConfig.code,
+    program: courseConfig.degreeType,
         department: departmentConfig.code,
-        programDurationYears: programConfig.durationYears,
+    programDurationYears: courseConfig.durationYears,
         registrationYear: registrationYear || new Date().getFullYear(),
         year: year || 1,
         currentClass: classContext
