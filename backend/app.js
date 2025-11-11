@@ -37,6 +37,7 @@ const enumConfigRoutes = require('./routes/enumConfig.routes');
 const templateRoutes = require('./routes/templates.routes');
 const departmentAnalyticsRoutes = require('./routes/departmentAnalytics.routes');
 const metadataRoutes = require('./routes/metadata.routes');
+const importOrchestratorRoutes = require('./routes/importOrchestrator.routes');
 
 // Create API router and mount all routes on it
 const apiRouter = express.Router();
@@ -58,6 +59,7 @@ apiRouter.use('/admin/config', enumConfigRoutes);
 apiRouter.use('/admin/enums', enumConfigRoutes);
 apiRouter.use('/admin/config', templateRoutes);
 apiRouter.use('/metadata', metadataRoutes);
+apiRouter.use('/bulk-import', importOrchestratorRoutes);
 
 // Mount the API router with /api prefix
 app.use('/api', apiRouter);

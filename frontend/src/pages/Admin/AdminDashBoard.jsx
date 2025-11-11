@@ -31,6 +31,26 @@ const COURSE_FIELD_TOOLTIPS = {
   departmentCode: 'Owning department code that must already exist in metadata. Determines department validations for imports and assignments.'
 };
 
+const BUNDLE_STEP_KEYS = ['classes', 'teachers', 'students', 'studentAssignments', 'facultyAssignments', 'advisorAssignments'];
+
+const BUNDLE_FIELD_MAP = {
+  classes: 'classesCsv',
+  teachers: 'teachersCsv',
+  students: 'studentsCsv',
+  studentAssignments: 'studentAssignmentsCsv',
+  facultyAssignments: 'facultyAssignmentsCsv',
+  advisorAssignments: 'advisorAssignmentsCsv'
+};
+
+const BUNDLE_SKIP_FIELD_MAP = {
+  classes: 'skipExistingClasses',
+  teachers: 'skipExistingTeachers',
+  students: 'skipExistingStudents',
+  studentAssignments: 'skipExistingStudentAssignments',
+  facultyAssignments: 'skipExistingFacultyAssignments',
+  advisorAssignments: 'skipExistingAdvisorAssignments'
+};
+
 const normaliseSegment = (value) => (value ? value.toString().trim().toUpperCase() : '');
 
 const stripDegreePrefixes = (value = '') =>
@@ -173,6 +193,7 @@ const AdminDashboard = () => {
     status: 'idle',
     message: '',
     details: [],
+    hasFailures: false,
     ...overrides
   });
 
@@ -253,6 +274,7 @@ const AdminDashboard = () => {
   const isSuperAdmin = adminInfo?.role === 'Super Admin';
 
   const [uploadStates, setUploadStates] = useState(() => createInitialUploadStates());
+  const [validationSession, setValidationSession] = useState(null);
 
   const updateUploadState = (key, nextState) => {
     setUploadStates((prev) => ({
@@ -269,6 +291,9 @@ const AdminDashboard = () => {
   };
 
   const updateBulkImportOption = (key, option, value) => {
+    if (BUNDLE_STEP_KEYS.includes(key)) {
+      setValidationSession(null);
+    }
     setBulkImportOptions((prev) => ({
       ...prev,
       [key]: {
@@ -312,25 +337,34 @@ const AdminDashboard = () => {
     return queryString ? `?${queryString}` : '';
   };
 
-  const collectFailureDetails = (payload) => {
-    const detailSources = [
+  const collectOutcomeDetails = (payload) => {
+    const failureSources = [
       payload?.failedEntries,
-      payload?.failed,
       payload?.results?.failedEntries,
-      payload?.results?.failed,
-      payload?.results?.details?.failed,
-      payload?.skippedEntries,
-      payload?.results?.skippedEntries
+      payload?.results?.details?.failedEntries
     ];
 
-    const details = [];
-    detailSources.forEach((source) => {
+    const skippedSources = [
+      payload?.skippedEntries,
+      payload?.results?.skippedEntries,
+      payload?.results?.details?.skippedEntries
+    ];
+
+    const failureDetails = [];
+    failureSources.forEach((source) => {
       if (Array.isArray(source)) {
-        details.push(...source);
+        failureDetails.push(...source);
       }
     });
 
-    return details;
+    const skippedDetails = [];
+    skippedSources.forEach((source) => {
+      if (Array.isArray(source)) {
+        skippedDetails.push(...source);
+      }
+    });
+
+    return { failureDetails, skippedDetails };
   };
 
   const summariseUpload = (payload, fallbackMessage) => {
@@ -353,7 +387,8 @@ const AdminDashboard = () => {
     gatherCounts(payload?.results);
     gatherCounts(payload?.results?.details);
 
-    const details = collectFailureDetails(payload);
+  const { failureDetails, skippedDetails } = collectOutcomeDetails(payload);
+  const details = [...failureDetails, ...skippedDetails];
     const messageParts = [];
 
     if (payload?.message) {
@@ -369,7 +404,11 @@ const AdminDashboard = () => {
     return {
       summary: messageParts.join(' ').trim() || fallbackMessage || 'Completed',
       details,
-      hasFailures: details.length > 0
+      hasFailures:
+        failureDetails.length > 0 ||
+        Number(payload?.failed) > 0 ||
+        Number(payload?.results?.failed) > 0 ||
+        Number(payload?.results?.details?.failed) > 0
     };
   };
 
@@ -415,7 +454,7 @@ const AdminDashboard = () => {
 
   const submitCsv = async ({ key, file, endpoint, successMessage, onSuccess, query, loadingMessage }) => {
     if (!file) {
-      updateUploadState(key, { status: 'error', message: 'Please select a CSV file', details: [] });
+      updateUploadState(key, { status: 'error', message: 'Please select a CSV file', details: [], hasFailures: true });
       return;
     }
 
@@ -426,7 +465,7 @@ const AdminDashboard = () => {
     }
 
     const pendingMessage = loadingMessage || 'Uploading file...';
-    updateUploadState(key, { status: 'loading', message: pendingMessage, details: [] });
+    updateUploadState(key, { status: 'loading', message: pendingMessage, details: [], hasFailures: false });
 
     const formData = new FormData();
     formData.append('file', file);
@@ -458,7 +497,8 @@ const AdminDashboard = () => {
       updateUploadState(key, {
         status: hasFailures ? 'warning' : 'success',
         message: summary,
-        details
+        details,
+        hasFailures
       });
 
       if (typeof onSuccess === 'function') {
@@ -469,7 +509,8 @@ const AdminDashboard = () => {
       updateUploadState(key, {
         status: 'error',
         message: error.message || 'Upload failed',
-        details: []
+        details: [],
+        hasFailures: true
       });
       return null;
     }
@@ -575,6 +616,9 @@ const AdminDashboard = () => {
 
     if (!file) {
       setFile(null);
+      if (statusKey && BUNDLE_STEP_KEYS.includes(statusKey)) {
+        setValidationSession(null);
+      }
       return;
     }
 
@@ -582,6 +626,9 @@ const AdminDashboard = () => {
       setFile(file);
       if (statusKey) {
         resetUploadState(statusKey);
+        if (BUNDLE_STEP_KEYS.includes(statusKey)) {
+          setValidationSession(null);
+        }
       }
       return;
     }
@@ -591,8 +638,12 @@ const AdminDashboard = () => {
       updateUploadState(statusKey, {
         status: 'error',
         message: 'Only CSV files are supported',
-        details: []
+        details: [],
+        hasFailures: true
       });
+      if (BUNDLE_STEP_KEYS.includes(statusKey)) {
+        setValidationSession(null);
+      }
     }
   };
 
@@ -799,6 +850,174 @@ const AdminDashboard = () => {
     ]
   );
 
+  const normaliseBundleBucket = (bucket = {}) => {
+    const successfulCount =
+      typeof bucket.successful === 'number'
+        ? bucket.successful
+        : typeof bucket.created === 'number'
+        ? bucket.created
+        : 0;
+
+    const failedEntries = Array.isArray(bucket.failedEntries) ? bucket.failedEntries : [];
+    const skippedEntries = Array.isArray(bucket.skippedEntries) ? bucket.skippedEntries : [];
+
+    const failedCount =
+      typeof bucket.failed === 'number' ? bucket.failed : failedEntries.length;
+    const skippedCount =
+      typeof bucket.skipped === 'number' ? bucket.skipped : skippedEntries.length;
+
+    return {
+      successfulCount,
+      failedCount,
+      skippedCount,
+      failedEntries,
+      skippedEntries
+    };
+  };
+
+  const resolveBundleBucket = (results, key, phase) => {
+    if (!results) {
+      return null;
+    }
+
+    if (phase === 'commit') {
+      if (key === 'studentAssignments') {
+        return results.assignments?.students || null;
+      }
+      if (key === 'facultyAssignments') {
+        return results.assignments?.faculty || null;
+      }
+      if (key === 'advisorAssignments') {
+        return results.assignments?.advisors || null;
+      }
+      return results[key] || null;
+    }
+
+    return results[key] || null;
+  };
+
+  const applyBundleBucketToState = (step, results, phase) => {
+    const bucket = resolveBundleBucket(results, step.key, phase);
+
+    if (!bucket) {
+      const fallback =
+        phase === 'verify'
+          ? `No validation data returned for ${step.title}`
+          : `No upload summary returned for ${step.title}`;
+      updateUploadState(step.key, {
+        status: 'error',
+        message: fallback,
+        details: [],
+        hasFailures: true
+      });
+      return;
+    }
+
+    const { successfulCount, failedCount, skippedCount, failedEntries, skippedEntries } = normaliseBundleBucket(bucket);
+
+    const counts = [];
+    if (successfulCount > 0) counts.push(`Success: ${successfulCount}`);
+    if (failedCount > 0) counts.push(`Failed: ${failedCount}`);
+    if (skippedCount > 0) counts.push(`Skipped: ${skippedCount}`);
+
+    let baseMessage;
+    if (successfulCount === 0 && failedCount === 0 && skippedCount === 0) {
+      baseMessage = phase === 'verify' ? `No rows detected for ${step.title}` : `No changes applied for ${step.title}`;
+    } else if (phase === 'verify') {
+      baseMessage = failedCount > 0 ? `${step.title} validation reported issues` : `${step.title} validation passed`;
+    } else {
+      const successCopy = step.successMessage || `${step.title} upload completed`;
+      baseMessage = failedCount > 0 ? `${successCopy} with issues` : successCopy;
+    }
+
+    const message = counts.length > 0 ? `${baseMessage} (${counts.join(', ')})` : baseMessage;
+    const hasFailures = failedCount > 0;
+    const status = hasFailures ? 'warning' : 'success';
+    const details = failedEntries.length || skippedEntries.length ? [...failedEntries, ...skippedEntries] : [];
+
+    updateUploadState(step.key, {
+      status,
+      message,
+      details,
+      hasFailures
+    });
+  };
+
+  const setBundleLoadingState = (phase) => {
+    newYearImportSteps.forEach((step) => {
+      updateUploadState(step.key, {
+        status: 'loading',
+        message: `${phase === 'verify' ? 'Validating' : 'Uploading'} ${step.title}...`,
+        details: [],
+        hasFailures: false
+      });
+    });
+  };
+
+  const propagateBundleError = (messageOrBuilder) => {
+    newYearImportSteps.forEach((step) => {
+      const message =
+        typeof messageOrBuilder === 'function' ? messageOrBuilder(step) : messageOrBuilder;
+      updateUploadState(step.key, {
+        status: 'error',
+        message,
+        details: [],
+        hasFailures: true
+      });
+    });
+  };
+
+  const submitBundleVerification = async () => {
+    const token = localStorage.getItem('admin-token');
+    if (!token) {
+      handleUnauthorized();
+      throw new Error('Authentication required');
+    }
+
+    const formData = new FormData();
+
+    newYearImportSteps.forEach((step) => {
+      const fieldName = BUNDLE_FIELD_MAP[step.key];
+      if (!fieldName) {
+        return;
+      }
+      formData.append(fieldName, step.file);
+
+      const skipField = BUNDLE_SKIP_FIELD_MAP[step.key];
+      if (skipField && bulkImportOptions?.[step.key]?.skipExisting) {
+        formData.append(skipField, 'true');
+      }
+    });
+
+    const response = await fetch(`${VITE_BASE_URL}/bulk-import/verify`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${token}`
+      },
+      body: formData
+    });
+
+    const payload = await parseResponsePayload(response);
+
+    if (response.status === 401) {
+      handleUnauthorized();
+      throw new Error(payload?.message || 'Authentication failed');
+    }
+
+    if (!response.ok) {
+      throw new Error(payload?.message || 'Validation failed');
+    }
+
+    return payload;
+  };
+
+  const submitBundleCommit = async (sessionId) =>
+    authorisedRequest('/bulk-import/commit', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ sessionId })
+    });
+
   const ensureFilesSelected = (steps, actionLabel) => {
     let hasMissing = false;
     steps.forEach((step) => {
@@ -807,7 +1026,8 @@ const AdminDashboard = () => {
         updateUploadState(step.key, {
           status: 'error',
           message: `Select a CSV before running ${actionLabel}`,
-          details: []
+          details: [],
+          hasFailures: true
         });
       }
     });
@@ -819,48 +1039,88 @@ const AdminDashboard = () => {
       return;
     }
 
-    for (const step of newYearImportSteps) {
-      const query = { dryRun: 'true' };
-      if (step.supportsSkipExisting && step.skipExisting) {
-        query.skipExisting = 'true';
-      }
+    setValidationSession(null);
+    setBundleLoadingState('verify');
 
-      await submitCsv({
-        key: step.key,
-        file: step.file,
-        endpoint: step.endpoint,
-        successMessage: step.successMessage,
-        query,
-        loadingMessage: `Validating ${step.title}...`
+    try {
+      const payload = await submitBundleVerification();
+      const results = payload?.results || {};
+
+      newYearImportSteps.forEach((step) => {
+        applyBundleBucketToState(step, results, 'verify');
       });
+
+      if (payload?.sessionId) {
+        setValidationSession({ id: payload.sessionId, expiresAt: payload.expiresAt || null });
+      } else {
+        setValidationSession(null);
+      }
+    } catch (error) {
+      propagateBundleError((step) => `${error.message || 'Validation failed'} (${step.title})`);
     }
   };
 
   const handleUploadAll = async () => {
-    if (!ensureFilesSelected(newYearImportSteps, 'Upload All')) {
+    if (!canUploadAll) {
       return;
     }
 
-    for (const step of newYearImportSteps) {
-      const query = {};
-      if (step.supportsSkipExisting && step.skipExisting) {
-        query.skipExisting = 'true';
-      }
+    if (!validationSession?.id) {
+      propagateBundleError((step) => `Run Verify All before uploading ${step.title.toLowerCase()}.`);
+      return;
+    }
 
-      await submitCsv({
-        key: step.key,
-        file: step.file,
-        endpoint: step.endpoint,
-        successMessage: step.successMessage,
-        query: Object.keys(query).length > 0 ? query : undefined,
-        loadingMessage: `Uploading ${step.title}...`
+    const expiresAtMs = validationSession.expiresAt ? Date.parse(validationSession.expiresAt) : null;
+    if (expiresAtMs && Number.isFinite(expiresAtMs) && expiresAtMs < Date.now()) {
+      setValidationSession(null);
+      propagateBundleError((step) => `Validation session expired. Re-run Verify All for ${step.title.toLowerCase()}.`);
+      return;
+    }
+
+    setBundleLoadingState('commit');
+
+    try {
+      const payload = await submitBundleCommit(validationSession.id);
+      const results = payload?.results || {};
+
+      newYearImportSteps.forEach((step) => {
+        applyBundleBucketToState(step, results, 'commit');
       });
+
+      setValidationSession(null);
+    } catch (error) {
+      setValidationSession(null);
+      propagateBundleError((step) => `${error.message || 'Upload failed'} (${step.title})`);
     }
   };
 
   const isBulkProcessing = useMemo(
     () => newYearImportSteps.some((step) => uploadStates[step.key]?.status === 'loading'),
     [newYearImportSteps, uploadStates]
+  );
+
+  const blockingSteps = useMemo(() => {
+    if (!validationSession?.id) {
+      return [];
+    }
+
+    return newYearImportSteps
+      .filter((step) => uploadStates?.[step.key]?.hasFailures)
+      .map((step) => step.title);
+  }, [validationSession, newYearImportSteps, uploadStates]);
+
+  const allStepsValidated = useMemo(
+    () =>
+      newYearImportSteps.every((step) => {
+        const state = uploadStates?.[step.key];
+        return state?.status === 'success';
+      }),
+    [newYearImportSteps, uploadStates]
+  );
+
+  const canUploadAll = useMemo(
+    () => Boolean(validationSession?.id) && blockingSteps.length === 0 && allStepsValidated,
+    [validationSession, blockingSteps, allStepsValidated]
   );
 
   const summariseRecord = (record) => {
@@ -1320,23 +1580,43 @@ const AdminDashboard = () => {
               Upload the generated CSV bundles in the order below to initialise the upcoming academic year. Each step
               surfaces API feedback, including any failed rows, so you can correct issues quickly.
             </p>
-            <div className="mt-4 flex flex-wrap gap-3">
-              <button
-                type="button"
-                onClick={handleVerifyAll}
-                className="inline-flex items-center rounded border border-blue-200 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
-                disabled={isBulkProcessing}
-              >
-                Verify All
-              </button>
-              <button
-                type="button"
-                onClick={handleUploadAll}
-                className="inline-flex items-center rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition disabled:opacity-60"
-                disabled={isBulkProcessing}
-              >
-                Upload All
-              </button>
+            <div className="mt-4 space-y-2">
+              <div className="flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={handleVerifyAll}
+                  className="inline-flex items-center rounded border border-blue-200 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                  disabled={isBulkProcessing}
+                >
+                  Verify All
+                </button>
+                <button
+                  type="button"
+                  onClick={handleUploadAll}
+                  className="inline-flex items-center rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition disabled:opacity-60"
+                  disabled={isBulkProcessing || !canUploadAll}
+                >
+                  Upload All
+                </button>
+              </div>
+              {validationSession?.id ? (
+                blockingSteps.length > 0 ? (
+                  <p className="text-xs text-yellow-600">
+                    Resolve validation issues for {blockingSteps.join(', ')} before uploading. All steps must be green to enable Upload All.
+                  </p>
+                ) : canUploadAll ? (
+                  <p className="text-xs text-gray-500">
+                    Validation session ready. Upload All before{' '}
+                    {validationSession.expiresAt ? new Date(validationSession.expiresAt).toLocaleString() : 'it expires'}.
+                  </p>
+                ) : (
+                  <p className="text-xs text-gray-500">
+                    Validation completed; waiting for the remaining steps to finish processing.
+                  </p>
+                )
+              ) : (
+                <p className="text-xs text-gray-500">Run Verify All to generate a validation session for Upload All.</p>
+              )}
             </div>
             <div className="mt-6 space-y-6">
               {newYearImportSteps.map((step) => (
