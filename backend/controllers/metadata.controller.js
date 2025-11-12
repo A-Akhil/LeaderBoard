@@ -1,12 +1,15 @@
 const DepartmentConfig = require('../models/departmentConfig.model');
 const CourseConfig = require('../models/courseConfig.model');
 const metadataCache = require('../utils/metadataCache');
+const teacherService = require('../services/teacher.service');
 
 const normaliseCode = (value) => (value ? value.toString().trim().toUpperCase() : '');
 
 const listDepartments = async (req, res) => {
     try {
-        const departments = await DepartmentConfig.find().sort({ code: 1 });
+        const departments = await DepartmentConfig.find()
+            .sort({ code: 1 })
+            .populate('hodTeacher', 'name email registerNo role');
         res.status(200).json({ success: true, data: departments });
     } catch (error) {
         console.error('Error fetching departments:', error);
@@ -17,7 +20,7 @@ const listDepartments = async (req, res) => {
 const upsertDepartment = async (req, res) => {
     try {
         const codeFromParams = req.params.code;
-        const { code: codeFromBody, name, description, isActive = true, aliases, departmentCodes } = req.body;
+        const { code: codeFromBody, name, description, isActive = true, aliases, departmentCodes, hodEmail } = req.body;
 
         const code = normaliseCode(codeFromParams || codeFromBody);
         if (!code || !name) {
@@ -44,10 +47,80 @@ const upsertDepartment = async (req, res) => {
             },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
+        if (!department) {
+            throw new Error('Failed to upsert department');
+        }
 
-        metadataCache.invalidateMetadata('department');
+        const normalisedHodEmail = hodEmail ? hodEmail.toString().trim().toLowerCase() : null;
+        let leadershipSummary = null;
 
-        res.status(200).json({ success: true, data: department });
+        if (normalisedHodEmail) {
+            try {
+                const hodResult = await teacherService.ensureDepartmentHod({
+                    departmentCode: code,
+                    hodEmail: normalisedHodEmail
+                });
+
+                if (
+                    !department.hodTeacher ||
+                    department.hodTeacher.toString() !== hodResult.teacher._id.toString() ||
+                    department.hodEmail !== hodResult.teacher.email.toLowerCase()
+                ) {
+                    department.hodTeacher = hodResult.teacher._id;
+                    department.hodEmail = hodResult.teacher.email.toLowerCase();
+                    await department.save();
+                }
+
+                leadershipSummary = {
+                    email: hodResult.teacher.email,
+                    name: hodResult.teacher.name,
+                    registerNo: hodResult.teacher.registerNo,
+                    generatedPassword: hodResult.generatedPassword || null,
+                    isNew: Boolean(hodResult.generatedPassword)
+                };
+            } catch (error) {
+                console.error('Error ensuring department HOD:', error);
+                return res.status(400).json({ success: false, message: error.message || 'Failed to assign HOD' });
+            }
+        } else if (department.hodEmail || department.hodTeacher) {
+            department.hodEmail = null;
+            department.hodTeacher = null;
+            await department.save();
+        }
+
+        await department.populate('hodTeacher', 'name email registerNo role');
+
+        metadataCache.invalidateMetadata('department', code);
+
+        let message = `Department ${code} saved`;
+        if (leadershipSummary?.generatedPassword) {
+            message += `. New HOD account created (temporary password: ${leadershipSummary.generatedPassword})`;
+        }
+
+        res.status(200).json({
+            success: true,
+            data: department,
+            leadership: {
+                hod: leadershipSummary || (department.hodTeacher
+                    ? {
+                          email: department.hodTeacher.email,
+                          name: department.hodTeacher.name,
+                          registerNo: department.hodTeacher.registerNo,
+                          generatedPassword: null,
+                          isNew: false
+                      }
+                    : department.hodEmail
+                    ? {
+                          email: department.hodEmail,
+                          name: null,
+                          registerNo: null,
+                          generatedPassword: null,
+                          isNew: false
+                      }
+                    : null)
+            },
+            message
+        });
     } catch (error) {
         console.error('Error upserting department:', error);
         res.status(500).json({ success: false, message: 'Failed to upsert department' });

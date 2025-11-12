@@ -1,8 +1,50 @@
+const crypto = require('crypto');
 const { model } = require('mongoose')
 const teacherModel = require('../models/teacher.model')
 const classModel = require('../models/class.model');
 const bcrypt = require('bcrypt');
 const metadataCache = require('../utils/metadataCache');
+
+const toUpper = (value = '') => value.toString().trim().toUpperCase();
+
+const titleCase = (value = '') =>
+    value
+        .split(' ')
+        .filter(Boolean)
+        .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+        .join(' ');
+
+const deriveNameFromEmail = (email, departmentCode) => {
+    if (!email) {
+        return `HOD ${departmentCode}`;
+    }
+
+    const localPart = email.split('@')[0] || '';
+    const cleaned = localPart.replace(/[^a-zA-Z]+/g, ' ').trim();
+    if (!cleaned) {
+        return `HOD ${departmentCode}`;
+    }
+
+    return titleCase(cleaned);
+};
+
+const generateUniqueRegisterNo = async (departmentCode) => {
+    const base = `HOD-${toUpper(departmentCode)}`;
+    let registerNo = base;
+    let counter = 1;
+
+    while (await teacherModel.findOne({ registerNo })) {
+        counter += 1;
+        registerNo = `${base}-${counter}`;
+    }
+
+    return registerNo;
+};
+
+const generateTemporaryPassword = (departmentCode) => {
+    const random = crypto.randomBytes(3).toString('hex');
+    return `Hod@${toUpper(departmentCode)}${random}`;
+};
 
 /**
  * Create a new teacher with role-based validation
@@ -153,4 +195,74 @@ module.exports.changePassword = async (teacherId, oldPassword, newPassword) => {
         console.error("Error changing password:", error);
         throw error;
     }
+};
+
+exports.ensureDepartmentHod = async ({ departmentCode, hodEmail }) => {
+    const normalisedDepartment = toUpper(departmentCode);
+    const normalisedEmail = hodEmail ? hodEmail.toString().trim().toLowerCase() : '';
+
+    if (!normalisedDepartment) {
+        throw new Error('Department code is required to assign an HOD');
+    }
+
+    if (!normalisedEmail) {
+        throw new Error('HOD email is required');
+    }
+
+    const conflictingHod = await teacherModel.findOne({
+        department: normalisedDepartment,
+        role: 'HOD',
+        email: { $ne: normalisedEmail }
+    });
+
+    if (conflictingHod) {
+        throw new Error(`HOD already exists for ${normalisedDepartment} (${conflictingHod.email}). Update that profile before assigning a new HOD.`);
+    }
+
+    let teacher = await teacherModel.findOne({ email: normalisedEmail });
+    let generatedPassword = null;
+
+    if (teacher) {
+        let shouldSave = false;
+
+        if (teacher.role !== 'HOD') {
+            teacher.role = 'HOD';
+            shouldSave = true;
+        }
+
+        if (teacher.department !== normalisedDepartment) {
+            teacher.department = normalisedDepartment;
+            shouldSave = true;
+        }
+
+        if (teacher.isActive === false) {
+            teacher.isActive = true;
+            shouldSave = true;
+        }
+
+        if (shouldSave) {
+            await teacher.save();
+        }
+    } else {
+        const name = deriveNameFromEmail(normalisedEmail, normalisedDepartment);
+        const registerNo = await generateUniqueRegisterNo(normalisedDepartment);
+        const password = generateTemporaryPassword(normalisedDepartment);
+        const hashedPassword = await teacherModel.hashedPassword(password);
+
+        teacher = new teacherModel({
+            name,
+            email: normalisedEmail,
+            password: hashedPassword,
+            rawPassword: password,
+            registerNo,
+            department: normalisedDepartment,
+            role: 'HOD',
+            managedDepartments: []
+        });
+
+        await teacher.save();
+        generatedPassword = password;
+    }
+
+    return { teacher, generatedPassword };
 };

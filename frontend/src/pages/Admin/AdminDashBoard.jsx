@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Upload, Users, FileText, UserPlus, Calendar, MessageSquare, Settings, Layers, Info } from 'lucide-react';
+import { Upload, Users, FileText, UserPlus, Calendar, MessageSquare, Settings, Layers, Info, Shield } from 'lucide-react';
 import AdminUpcomingEventForm from '../../components/AdminUpcomingEventForm';
 import UpcomingEventsList from '../../components/UpcomingEventsList';
 import ReportsPage from '../ReportsPage';
@@ -121,7 +121,7 @@ const deriveSpecialisationSegment = (name = '') => {
   }
 
   const segments = [];
-  for (let i = 0; i < rawTokens.length; ) {
+  for (let i = 0; i < rawTokens.length;) {
     const token = rawTokens[i];
     const matchedPattern = SPECIALISATION_PATTERNS.find(({ sequence }) =>
       sequence.every((value, idx) => rawTokens[i + idx] === value)
@@ -236,20 +236,24 @@ const AdminDashboard = () => {
     code: '',
     name: '',
     description: '',
-    aliases: ''
+    aliases: '',
+    hodEmail: ''
   });
+  const [editingDepartmentCode, setEditingDepartmentCode] = useState(null);
 
   const [courseForm, setCourseForm] = useState({
+    code: '',
     name: '',
     displayName: '',
     degreeType: 'BTECH',
     departmentCode: '',
     durationYears: String(DEGREE_DURATION_DEFAULTS.BTECH)
   });
+  const [editingCourseCode, setEditingCourseCode] = useState(null);
 
   const derivedCourseCode = useMemo(
-    () => deriveCourseCode(courseForm.degreeType, courseForm.departmentCode, courseForm.name),
-    [courseForm.degreeType, courseForm.departmentCode, courseForm.name]
+    () => (editingCourseCode ? editingCourseCode : deriveCourseCode(courseForm.degreeType, courseForm.departmentCode, courseForm.name)),
+    [editingCourseCode, courseForm.degreeType, courseForm.departmentCode, courseForm.name]
   );
 
   const [metadataStates, setMetadataStates] = useState(() => ({
@@ -387,8 +391,8 @@ const AdminDashboard = () => {
     gatherCounts(payload?.results);
     gatherCounts(payload?.results?.details);
 
-  const { failureDetails, skippedDetails } = collectOutcomeDetails(payload);
-  const details = [...failureDetails, ...skippedDetails];
+    const { failureDetails, skippedDetails } = collectOutcomeDetails(payload);
+    const details = [...failureDetails, ...skippedDetails];
     const messageParts = [];
 
     if (payload?.message) {
@@ -600,7 +604,7 @@ const AdminDashboard = () => {
   }, [VITE_BASE_URL, handleUnauthorized]);
 
   useEffect(() => {
-    if (!isSuperAdmin && activeTab === 'metadata') {
+    if (!isSuperAdmin && (activeTab === 'metadata' || activeTab === 'leadership')) {
       setActiveTab('create-class');
     }
   }, [isSuperAdmin, activeTab]);
@@ -855,8 +859,8 @@ const AdminDashboard = () => {
       typeof bucket.successful === 'number'
         ? bucket.successful
         : typeof bucket.created === 'number'
-        ? bucket.created
-        : 0;
+          ? bucket.created
+          : 0;
 
     const failedEntries = Array.isArray(bucket.failedEntries) ? bucket.failedEntries : [];
     const skippedEntries = Array.isArray(bucket.skippedEntries) ? bucket.skippedEntries : [];
@@ -1181,7 +1185,12 @@ const AdminDashboard = () => {
     const { name, value } = event.target;
     setDepartmentForm((prev) => ({
       ...prev,
-      [name]: name === 'code' ? value.toUpperCase() : value
+      [name]:
+        name === 'code'
+          ? value.toUpperCase()
+          : name === 'hodEmail'
+            ? value.toLowerCase()
+            : value
     }));
 
     if (metadataStates.department.status !== 'idle') {
@@ -1190,7 +1199,8 @@ const AdminDashboard = () => {
   };
 
   const handleDepartmentReset = () => {
-    setDepartmentForm({ code: '', name: '', description: '', aliases: '' });
+    setDepartmentForm({ code: '', name: '', description: '', aliases: '', hodEmail: '' });
+    setEditingDepartmentCode(null);
     resetMetadataState('department');
   };
 
@@ -1199,6 +1209,9 @@ const AdminDashboard = () => {
 
     const code = departmentForm.code.trim().toUpperCase();
     const name = departmentForm.name.trim();
+    const hodEmail = departmentForm.hodEmail.trim().toLowerCase();
+
+    const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
     if (!code || !name) {
       updateMetadataState('department', {
@@ -1209,26 +1222,58 @@ const AdminDashboard = () => {
       return;
     }
 
+    if (!hodEmail || !emailPattern.test(hodEmail)) {
+      updateMetadataState('department', {
+        status: 'error',
+        message: 'A valid HOD email is required so the system can assign the department head automatically',
+        details: []
+      });
+      return;
+    }
+
     const payload = {
       code,
       name,
       description: departmentForm.description.trim() || undefined,
-      aliases: parseCsvList(departmentForm.aliases)
+      aliases: parseCsvList(departmentForm.aliases),
+      hodEmail
     };
+
+    const targetCode = editingDepartmentCode || code;
 
     try {
       await submitMetadata({
         key: 'department',
-        endpoint: '/metadata/departments',
+        endpoint: editingDepartmentCode
+          ? `/metadata/departments/${encodeURIComponent(editingDepartmentCode)}`
+          : '/metadata/departments',
+        method: editingDepartmentCode ? 'PUT' : 'POST',
         body: payload,
-        successMessage: `Department ${code} saved`
+        successMessage: `Department ${targetCode} ${editingDepartmentCode ? 'updated' : 'saved'}`
       });
 
-      setDepartmentForm({ code: '', name: '', description: '', aliases: '' });
+      setDepartmentForm({ code: '', name: '', description: '', aliases: '', hodEmail: '' });
+      setEditingDepartmentCode(null);
       await fetchMetadataLists();
     } catch (error) {
       // Handled via submitMetadata state updates
     }
+  };
+
+  const beginDepartmentEdit = (department) => {
+    if (!department) {
+      return;
+    }
+
+    setDepartmentForm({
+      code: department.code || '',
+      name: department.name || '',
+      description: department.description || '',
+      aliases: Array.isArray(department.aliases) && department.aliases.length > 0 ? department.aliases.join(', ') : '',
+      hodEmail: (department.hodTeacher?.email || department.hodEmail || '').toLowerCase()
+    });
+    setEditingDepartmentCode(department.code || null);
+    resetMetadataState('department');
   };
 
   const handleCourseInputChange = (event) => {
@@ -1264,12 +1309,14 @@ const AdminDashboard = () => {
 
   const handleCourseReset = () => {
     setCourseForm({
+      code: '',
       name: '',
       displayName: '',
       degreeType: 'BTECH',
       departmentCode: '',
       durationYears: String(DEGREE_DURATION_DEFAULTS.BTECH)
     });
+    setEditingCourseCode(null);
     resetMetadataState('course');
   };
 
@@ -1281,7 +1328,7 @@ const AdminDashboard = () => {
     const departmentCode = courseForm.departmentCode.trim().toUpperCase();
     const durationYears = Number(courseForm.durationYears);
     const displayName = courseForm.displayName.trim();
-    const code = derivedCourseCode;
+    const code = editingCourseCode ? editingCourseCode : derivedCourseCode;
 
     if (!code || !name || !degreeType || !departmentCode || !Number.isFinite(durationYears) || durationYears <= 0) {
       updateMetadataState('course', {
@@ -1304,9 +1351,12 @@ const AdminDashboard = () => {
     try {
       await submitMetadata({
         key: 'course',
-        endpoint: '/metadata/courses',
+        endpoint: editingCourseCode
+          ? `/metadata/courses/${encodeURIComponent(editingCourseCode)}`
+          : '/metadata/courses',
+        method: editingCourseCode ? 'PUT' : 'POST',
         body: payload,
-        successMessage: `Course ${code} saved`
+        successMessage: `Course ${code} ${editingCourseCode ? 'updated' : 'saved'}`
       });
 
       setCourseForm({
@@ -1317,10 +1367,28 @@ const AdminDashboard = () => {
         departmentCode: '',
         durationYears: String(DEGREE_DURATION_DEFAULTS.BTECH)
       });
+      setEditingCourseCode(null);
       await fetchMetadataLists();
     } catch (error) {
       // Error response handled via submitMetadata state updates
     }
+  };
+
+  const beginCourseEdit = (course) => {
+    if (!course) {
+      return;
+    }
+
+    setCourseForm({
+      code: course.code || '',
+      name: course.name || '',
+      displayName: course.displayName || '',
+      degreeType: course.degreeType || 'BTECH',
+      departmentCode: course.departmentCode || '',
+      durationYears: course.durationYears ? String(course.durationYears) : ''
+    });
+    setEditingCourseCode(course.code || null);
+    resetMetadataState('course');
   };
 
   const renderStatus = (key, source = uploadStates) => {
@@ -1451,25 +1519,25 @@ const AdminDashboard = () => {
   const fetchAdminData = async () => {
     const token = localStorage.getItem('admin-token');
     if (!token) {
-        navigate('/admin-login');
-        return;
+      navigate('/admin-login');
+      return;
     }
-    
+
     try {
-        const response = await axios.get(`${VITE_BASE_URL}/admin/dashboard`, {
-            headers: {
-                Authorization: `Bearer ${token}`
-            }
-        });
-        // Process response data
-    } catch (error) {
-        // Handle error
-        if (error.response?.status === 401) {
-            localStorage.removeItem('admin-token');
-            navigate('/admin-login');
+      const response = await axios.get(`${VITE_BASE_URL}/admin/dashboard`, {
+        headers: {
+          Authorization: `Bearer ${token}`
         }
+      });
+      // Process response data
+    } catch (error) {
+      // Handle error
+      if (error.response?.status === 401) {
+        localStorage.removeItem('admin-token');
+        navigate('/admin-login');
+      }
     }
-};
+  };
 
   return (
     <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
@@ -1479,92 +1547,92 @@ const AdminDashboard = () => {
           <nav className="-mb-px flex space-x-8">
             <button
               onClick={() => setActiveTab('new-year-import')}
-              className={`w-full p-4 flex items-center gap-2 ${
-                activeTab === 'new-year-import' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-              }`}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'new-year-import' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
             >
               <Upload size={20} />
               New Year Import
             </button>
             {isSuperAdmin && (
-              <button
-                onClick={() => setActiveTab('metadata')}
-                className={`w-full p-4 flex items-center gap-2 ${
-                  activeTab === 'metadata' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-              >
-                <Layers size={20} />
-                Metadata Management
-              </button>
+              <>
+                <button
+                  onClick={() => setActiveTab('metadata')}
+                  className={`w-full p-4 flex items-center gap-2 ${activeTab === 'metadata' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                    }`}
+                >
+                  <Layers size={20} />
+                  Metadata Management
+                </button>
+                <button
+                  onClick={() => setActiveTab('leadership')}
+                  className={`w-full p-4 flex items-center gap-2 ${activeTab === 'leadership' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                    }`}
+                >
+                  <Shield size={20} />
+                  Leadership Roles
+                </button>
+              </>
             )}
             <button
               onClick={() => setActiveTab('create-class')}
-              className={`w-full p-4 flex items-center gap-2 ${
-                activeTab === 'create-class' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-              }`}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'create-class' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
             >
               <Upload size={20} />
               Create Class
             </button>
             <button
               onClick={() => setActiveTab('add-student')}
-              className={`w-full p-4 flex items-center gap-2 ${
-                activeTab === 'add-student' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-              }`}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'add-student' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
             >
               <Users size={20} />
               Add Students
             </button>
             <button
               onClick={() => setActiveTab('register-teacher')}
-              className={`w-full p-4 flex items-center gap-2 ${
-                activeTab === 'register-teacher' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-              }`}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'register-teacher' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
             >
               <UserPlus size={20} />
               Register Teacher
             </button>
             <button
               onClick={() => setActiveTab('register-student')}
-              className={`w-full p-4 flex items-center gap-2 ${
-                activeTab === 'register-student' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-              }`}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'register-student' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
             >
               <UserPlus size={20} />
               Register Student
             </button>
             <button
               onClick={() => setActiveTab('reports')}
-              className={`w-full p-4 flex items-center gap-2 ${
-                activeTab === 'reports' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-              }`}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'reports' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
             >
               <FileText size={20} />
               Reports
             </button>
             <button
               onClick={() => setActiveTab('upcoming-events')}
-              className={`w-full p-4 flex items-center gap-2 ${
-                activeTab === 'upcoming-events' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-              }`}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'upcoming-events' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
             >
               <Calendar size={20} />
               Manage Upcoming Events
             </button>
             <button
               onClick={() => setActiveTab('feedback')}
-              className={`w-full p-4 flex items-center gap-2 ${
-                activeTab === 'feedback' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-              }`}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'feedback' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
             >
               <MessageSquare size={20} />
               Feedback Review
             </button>
             <button
               onClick={() => navigate('/admin/system-config')}
-              className={`w-full p-4 flex items-center gap-2 ${
-                activeTab === 'enum-management' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-              }`}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'enum-management' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
             >
               <Settings size={20} />
               System Configuration
@@ -1681,6 +1749,11 @@ const AdminDashboard = () => {
                   </p>
                 </div>
                 <form onSubmit={handleDepartmentSubmit} className="mt-4 space-y-4">
+                  {editingDepartmentCode && (
+                    <div className="rounded border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-yellow-700">
+                      Editing department {editingDepartmentCode}. Update the details below or cancel to exit edit mode.
+                    </div>
+                  )}
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">Department Code</label>
@@ -1688,9 +1761,10 @@ const AdminDashboard = () => {
                         name="code"
                         value={departmentForm.code}
                         onChange={handleDepartmentInputChange}
-                        className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                        className={`mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm ${editingDepartmentCode ? 'bg-gray-100 cursor-not-allowed' : ''}`}
                         placeholder="e.g. CINTEL"
                         required
+                        disabled={Boolean(editingDepartmentCode)}
                       />
                     </div>
                     <div>
@@ -1724,20 +1798,35 @@ const AdminDashboard = () => {
                         placeholder="CINT, C-INTEL"
                       />
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">Head of Department Email</label>
+                      <input
+                        name="hodEmail"
+                        type="email"
+                        value={departmentForm.hodEmail}
+                        onChange={handleDepartmentInputChange}
+                        className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                        placeholder="hod@example.edu"
+                        required
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        The system auto-creates or updates the department HOD login using this email.
+                      </p>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
                       type="submit"
                       className="inline-flex items-center rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
                     >
-                      Save Department
+                      {editingDepartmentCode ? 'Update Department' : 'Save Department'}
                     </button>
                     <button
                       type="button"
                       onClick={handleDepartmentReset}
                       className="inline-flex items-center rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
                     >
-                      Reset
+                      {editingDepartmentCode ? 'Cancel' : 'Reset'}
                     </button>
                   </div>
                 </form>
@@ -1752,19 +1841,36 @@ const AdminDashboard = () => {
                         <div key={dept._id || dept.code} className="rounded border border-gray-200 p-3">
                           <div className="flex items-center justify-between gap-3">
                             <p className="text-sm font-semibold text-gray-800">{dept.code}</p>
-                            <span
-                              className={`text-xs font-semibold px-2 py-1 rounded border ${
-                                dept.isActive
-                                  ? 'border-green-200 bg-green-50 text-green-700'
-                                  : 'border-gray-200 bg-gray-100 text-gray-600'
-                              }`}
-                            >
-                              {dept.isActive ? 'Active' : 'Inactive'}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-xs font-semibold px-2 py-1 rounded border ${dept.isActive
+                                    ? 'border-green-200 bg-green-50 text-green-700'
+                                    : 'border-gray-200 bg-gray-100 text-gray-600'
+                                  }`}
+                              >
+                                {dept.isActive ? 'Active' : 'Inactive'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => beginDepartmentEdit(dept)}
+                                className="text-xs font-medium text-blue-600 hover:text-blue-800"
+                              >
+                                Edit
+                              </button>
+                            </div>
                           </div>
                           <p className="mt-1 text-sm text-gray-700">{dept.name}</p>
                           {dept.description && (
                             <p className="mt-1 text-xs text-gray-500">{dept.description}</p>
+                          )}
+                          {dept.hodTeacher ? (
+                            <p className="mt-1 text-xs text-gray-500">
+                              HOD: {dept.hodTeacher.name} ({dept.hodTeacher.email}) · {dept.hodTeacher.registerNo}
+                            </p>
+                          ) : dept.hodEmail ? (
+                            <p className="mt-1 text-xs text-gray-500">HOD Email: {dept.hodEmail}</p>
+                          ) : (
+                            <p className="mt-1 text-xs text-gray-500">HOD not assigned yet.</p>
                           )}
                           {Array.isArray(dept.aliases) && dept.aliases.length > 0 && (
                             <p className="mt-1 text-xs text-gray-500">Aliases: {dept.aliases.join(', ')}</p>
@@ -1797,11 +1903,10 @@ const AdminDashboard = () => {
                           <div className="flex items-center justify-between gap-3">
                             <p className="text-sm font-semibold text-gray-800">{summary.code}</p>
                             <span
-                              className={`text-xs font-semibold px-2 py-1 rounded border ${
-                                summary.isActive
+                              className={`text-xs font-semibold px-2 py-1 rounded border ${summary.isActive
                                   ? 'border-green-200 bg-green-50 text-green-700'
                                   : 'border-gray-200 bg-gray-100 text-gray-600'
-                              }`}
+                                }`}
                             >
                               {summary.isActive ? 'Active' : 'Inactive'}
                             </span>
@@ -1829,6 +1934,11 @@ const AdminDashboard = () => {
                   </p>
                 </div>
                 <form onSubmit={handleCourseSubmit} className="mt-4 space-y-4">
+                  {editingCourseCode && (
+                    <div className="rounded border border-yellow-200 bg-yellow-50 px-3 py-2 text-xs text-yellow-700">
+                      Editing course {editingCourseCode}. The course code stays locked; adjust other fields as needed or cancel to exit edit mode.
+                    </div>
+                  )}
                   <div className="grid gap-4 md:grid-cols-2">
                     <div>
                       <label className="block text-sm font-medium text-gray-700">
@@ -1926,14 +2036,14 @@ const AdminDashboard = () => {
                       type="submit"
                       className="inline-flex items-center rounded bg-blue-600 px-4 py-2 text-sm font-medium text-white hover:bg-blue-700 transition"
                     >
-                      Save Course
+                      {editingCourseCode ? 'Update Course' : 'Save Course'}
                     </button>
                     <button
                       type="button"
                       onClick={handleCourseReset}
                       className="inline-flex items-center rounded border border-gray-300 px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 transition"
                     >
-                      Reset
+                      {editingCourseCode ? 'Cancel' : 'Reset'}
                     </button>
                   </div>
                 </form>
@@ -1948,15 +2058,23 @@ const AdminDashboard = () => {
                         <div key={course._id || course.code} className="rounded border border-gray-200 p-3">
                           <div className="flex items-center justify-between gap-3">
                             <p className="text-sm font-semibold text-gray-800">{course.code}</p>
-                            <span
-                              className={`text-xs font-semibold px-2 py-1 rounded border ${
-                                course.isActive
-                                  ? 'border-green-200 bg-green-50 text-green-700'
-                                  : 'border-gray-200 bg-gray-100 text-gray-600'
-                              }`}
-                            >
-                              {course.isActive ? 'Active' : 'Inactive'}
-                            </span>
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`text-xs font-semibold px-2 py-1 rounded border ${course.isActive
+                                    ? 'border-green-200 bg-green-50 text-green-700'
+                                    : 'border-gray-200 bg-gray-100 text-gray-600'
+                                  }`}
+                              >
+                                {course.isActive ? 'Active' : 'Inactive'}
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => beginCourseEdit(course)}
+                                className="text-xs font-medium text-blue-600 hover:text-blue-800"
+                              >
+                                Edit
+                              </button>
+                            </div>
                           </div>
                           <p className="mt-1 text-sm text-gray-700">{course.name}</p>
                           <p className="mt-1 text-xs text-gray-500">
@@ -2109,7 +2227,7 @@ const AdminDashboard = () => {
 
         {activeTab === 'enum-management' && (
           <div className="bg-white p-6 rounded-lg shadow">
-            <button 
+            <button
               onClick={() => navigate('/admin/system-config')}
               className="mb-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
             >
