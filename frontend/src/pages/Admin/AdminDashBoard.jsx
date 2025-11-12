@@ -51,6 +51,16 @@ const BUNDLE_SKIP_FIELD_MAP = {
   advisorAssignments: 'skipExistingAdvisorAssignments'
 };
 
+const TEMPLATE_TYPE_MAP = {
+  classes: 'classes',
+  teachers: 'teachers',
+  students: 'students',
+  studentAssignments: 'student-assignments',
+  facultyAssignments: 'faculty-assignments',
+  advisorAssignments: 'advisor-assignments',
+  registerStudent: 'students'
+};
+
 const normaliseSegment = (value) => (value ? value.toString().trim().toUpperCase() : '');
 
 const stripDegreePrefixes = (value = '') =>
@@ -289,6 +299,22 @@ const AdminDashboard = () => {
 
   const resetUploadState = (key) => {
     setUploadStates((prev) => ({
+      ...prev,
+      [key]: createStatus()
+    }));
+  };
+
+  const [templateDownloadStates, setTemplateDownloadStates] = useState({});
+
+  const setTemplateDownloadState = (key, overrides = {}) => {
+    setTemplateDownloadStates((prev) => ({
+      ...prev,
+      [key]: { ...(prev[key] || createStatus()), ...overrides }
+    }));
+  };
+
+  const resetTemplateDownloadState = (key) => {
+    setTemplateDownloadStates((prev) => ({
       ...prev,
       [key]: createStatus()
     }));
@@ -546,6 +572,88 @@ const AdminDashboard = () => {
         details: []
       });
       throw error;
+    }
+  };
+
+  const handleTemplateDownload = async (key) => {
+    const templateType = TEMPLATE_TYPE_MAP[key];
+
+    if (!templateType) {
+      setTemplateDownloadState(key, {
+        status: 'error',
+        message: 'Template is not available for this step.',
+        details: [],
+        hasFailures: true
+      });
+      setTimeout(() => resetTemplateDownloadState(key), 4000);
+      return;
+    }
+
+    const token = localStorage.getItem('admin-token');
+    if (!token) {
+      handleUnauthorized();
+      return;
+    }
+
+    setTemplateDownloadState(key, {
+      status: 'loading',
+      message: 'Preparing template...',
+      details: [],
+      hasFailures: false
+    });
+
+    try {
+      const response = await fetch(`${VITE_BASE_URL}/bulk-import/templates/${templateType}`, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+
+      if (response.status === 401) {
+        handleUnauthorized();
+        return;
+      }
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        let message = 'Failed to download template';
+        if (errorText) {
+          try {
+            const parsed = JSON.parse(errorText);
+            message = parsed?.message || message;
+          } catch (parseError) {
+            message = errorText;
+          }
+        }
+        throw new Error(message);
+      }
+
+      const blob = await response.blob();
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      link.href = downloadUrl;
+      link.download = `${templateType}-template-${timestamp}.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setTemplateDownloadState(key, {
+        status: 'success',
+        message: 'Template downloaded. Check your downloads folder.',
+        details: [],
+        hasFailures: false
+      });
+      setTimeout(() => resetTemplateDownloadState(key), 6000);
+    } catch (error) {
+      setTemplateDownloadState(key, {
+        status: 'error',
+        message: error.message || 'Failed to download template',
+        details: [],
+        hasFailures: true
+      });
+      setTimeout(() => resetTemplateDownloadState(key), 6000);
     }
   };
 
@@ -1174,6 +1282,13 @@ const AdminDashboard = () => {
     error: 'bg-red-50 border-red-200 text-red-700'
   };
 
+  const templateStatusStyles = {
+    loading: 'text-blue-600',
+    success: 'text-green-600',
+    warning: 'text-yellow-600',
+    error: 'text-red-600'
+  };
+
   const parseCsvList = (value) =>
     (value || '')
       .split(',')
@@ -1427,6 +1542,20 @@ const AdminDashboard = () => {
     );
   };
 
+  const renderTemplateStatus = (key) => {
+    const state = templateDownloadStates?.[key];
+    if (!state || state.status === 'idle') {
+      return null;
+    }
+
+    const style = templateStatusStyles[state.status] || 'text-gray-600';
+    return (
+      <p className={`mt-2 text-xs ${style}`}>
+        {state.message}
+      </p>
+    );
+  };
+
   const ImportStep = ({
     step,
     title,
@@ -1438,9 +1567,14 @@ const AdminDashboard = () => {
     extraNote,
     supportsSkipExisting = false,
     skipExisting = false,
-    onSkipExistingChange
+    onSkipExistingChange,
+    templateDownloadState,
+    onTemplateDownload
   }) => {
     const inputRef = useRef(null);
+    const templateStatus = templateDownloadState?.status || 'idle';
+    const templateMessage = templateDownloadState?.message;
+    const isTemplateLoading = templateStatus === 'loading';
 
     return (
       <div className="border border-gray-200 rounded-lg p-4">
@@ -1473,8 +1607,23 @@ const AdminDashboard = () => {
             >
               {file ? file.name : 'Choose CSV'}
             </button>
+            {onTemplateDownload && (
+              <button
+                type="button"
+                onClick={() => onTemplateDownload(statusKey)}
+                className="inline-flex items-center justify-center rounded border border-blue-200 px-4 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                disabled={isTemplateLoading}
+              >
+                {isTemplateLoading ? 'Preparing…' : 'Download Template'}
+              </button>
+            )}
           </div>
         </div>
+        {templateMessage && templateStatus !== 'idle' && (
+          <p className={`mt-2 text-xs ${templateStatusStyles[templateStatus] || 'text-gray-600'}`}>
+            {templateMessage}
+          </p>
+        )}
         {supportsSkipExisting && (
           <label className="mt-3 flex items-center gap-2 text-xs text-gray-600">
             <input
@@ -1606,6 +1755,30 @@ const AdminDashboard = () => {
               Register Student
             </button>
             <button
+              onClick={() => setActiveTab('assign-students')}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'assign-students' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
+            >
+              <Upload size={20} />
+              Assign Students
+            </button>
+            <button
+              onClick={() => setActiveTab('assign-faculty')}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'assign-faculty' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
+            >
+              <Upload size={20} />
+              Assign Faculty
+            </button>
+            <button
+              onClick={() => setActiveTab('assign-advisors')}
+              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'assign-advisors' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
+                }`}
+            >
+              <Upload size={20} />
+              Assign Advisors
+            </button>
+            <button
               onClick={() => setActiveTab('reports')}
               className={`w-full p-4 flex items-center gap-2 ${activeTab === 'reports' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
                 }`}
@@ -1701,6 +1874,8 @@ const AdminDashboard = () => {
                   supportsSkipExisting={step.supportsSkipExisting}
                   skipExisting={step.skipExisting}
                   onSkipExistingChange={(value) => updateBulkImportOption(step.key, 'skipExisting', value)}
+                  templateDownloadState={templateDownloadStates[step.key]}
+                  onTemplateDownload={handleTemplateDownload}
                 />
               ))}
             </div>
@@ -2109,6 +2284,17 @@ const AdminDashboard = () => {
                 <p className="text-sm text-gray-500 mt-1">
                   Please upload a CSV file with class details
                 </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateDownload('classes')}
+                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                    disabled={templateDownloadStates?.classes?.status === 'loading'}
+                  >
+                    {templateDownloadStates?.classes?.status === 'loading' ? 'Preparing…' : 'Download Template'}
+                  </button>
+                </div>
+                {renderTemplateStatus('classes')}
               </div>
               <button
                 type="submit"
@@ -2136,6 +2322,17 @@ const AdminDashboard = () => {
                 <p className="text-sm text-gray-500 mt-1">
                   Please upload a CSV file with student details
                 </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateDownload('students')}
+                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                    disabled={templateDownloadStates?.students?.status === 'loading'}
+                  >
+                    {templateDownloadStates?.students?.status === 'loading' ? 'Preparing…' : 'Download Template'}
+                  </button>
+                </div>
+                {renderTemplateStatus('students')}
               </div>
               <button
                 type="submit"
@@ -2163,6 +2360,17 @@ const AdminDashboard = () => {
                 <p className="text-sm text-gray-500 mt-1">
                   Please upload a CSV file with teacher details
                 </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateDownload('teachers')}
+                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                    disabled={templateDownloadStates?.teachers?.status === 'loading'}
+                  >
+                    {templateDownloadStates?.teachers?.status === 'loading' ? 'Preparing…' : 'Download Template'}
+                  </button>
+                </div>
+                {renderTemplateStatus('teachers')}
               </div>
               <button
                 type="submit"
@@ -2190,6 +2398,17 @@ const AdminDashboard = () => {
                 <p className="text-sm text-gray-500 mt-1">
                   Please upload a CSV file with student details
                 </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateDownload('registerStudent')}
+                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                    disabled={templateDownloadStates?.registerStudent?.status === 'loading'}
+                  >
+                    {templateDownloadStates?.registerStudent?.status === 'loading' ? 'Preparing…' : 'Download Template'}
+                  </button>
+                </div>
+                {renderTemplateStatus('registerStudent')}
               </div>
               <button
                 type="submit"
@@ -2199,6 +2418,120 @@ const AdminDashboard = () => {
               </button>
             </form>
             {renderStatus('registerStudent')}
+          </div>
+        )}
+
+        {activeTab === 'assign-students' && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-2xl font-semibold mb-4">Assign Students to Classes</h2>
+            <form onSubmit={handleStudentAssignmentsUpload}>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Upload Student-Class Assignment CSV</label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => handleFileChange(e, setStudentAssignmentFile, 'studentAssignments')}
+                  className="w-full p-2 border rounded"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Map each register number to the class name generated during the class import. The template reflects the latest course and department metadata.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateDownload('studentAssignments')}
+                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                    disabled={templateDownloadStates?.studentAssignments?.status === 'loading'}
+                  >
+                    {templateDownloadStates?.studentAssignments?.status === 'loading' ? 'Preparing…' : 'Download Template'}
+                  </button>
+                </div>
+                {renderTemplateStatus('studentAssignments')}
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Upload Student Assignments
+              </button>
+            </form>
+            {renderStatus('studentAssignments')}
+          </div>
+        )}
+
+        {activeTab === 'assign-faculty' && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-2xl font-semibold mb-4">Assign Faculty to Classes</h2>
+            <form onSubmit={handleFacultyAssignmentsUpload}>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Upload Faculty-Class Assignment CSV</label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => handleFileChange(e, setFacultyAssignmentFile, 'facultyAssignments')}
+                  className="w-full p-2 border rounded"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Link each faculty register number to their classes. Use the template to pull current class identifiers and ensure role validation passes.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateDownload('facultyAssignments')}
+                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                    disabled={templateDownloadStates?.facultyAssignments?.status === 'loading'}
+                  >
+                    {templateDownloadStates?.facultyAssignments?.status === 'loading' ? 'Preparing…' : 'Download Template'}
+                  </button>
+                </div>
+                {renderTemplateStatus('facultyAssignments')}
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Upload Faculty Assignments
+              </button>
+            </form>
+            {renderStatus('facultyAssignments')}
+          </div>
+        )}
+
+        {activeTab === 'assign-advisors' && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-2xl font-semibold mb-4">Assign Academic Advisors</h2>
+            <form onSubmit={handleAdvisorAssignmentsUpload}>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Upload Advisor-Class Assignment CSV</label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => handleFileChange(e, setAdvisorAssignmentFile, 'advisorAssignments')}
+                  className="w-full p-2 border rounded"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Assign academic advisors to each class. The downloadable template includes the active class list and advisor guidance headers.
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateDownload('advisorAssignments')}
+                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                    disabled={templateDownloadStates?.advisorAssignments?.status === 'loading'}
+                  >
+                    {templateDownloadStates?.advisorAssignments?.status === 'loading' ? 'Preparing…' : 'Download Template'}
+                  </button>
+                </div>
+                {renderTemplateStatus('advisorAssignments')}
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Upload Advisor Assignments
+              </button>
+            </form>
+            {renderStatus('advisorAssignments')}
           </div>
         )}
 
