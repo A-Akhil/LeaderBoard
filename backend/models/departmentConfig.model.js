@@ -34,6 +34,17 @@ const departmentConfigSchema = new mongoose.Schema({
         ref: 'teacher',
         default: null
     },
+    departmentAdminEmail: {
+        type: String,
+        lowercase: true,
+        trim: true,
+        default: null
+    },
+    departmentAdmin: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: 'Admin',
+        default: null
+    },
     isActive: {
         type: Boolean,
         default: true
@@ -59,6 +70,10 @@ departmentConfigSchema.pre('save', function(next) {
         this.hodEmail = this.hodEmail.toString().trim().toLowerCase();
     }
 
+    if (this.departmentAdminEmail) {
+        this.departmentAdminEmail = this.departmentAdminEmail.toString().trim().toLowerCase();
+    }
+
     next();
 });
 
@@ -74,6 +89,14 @@ departmentConfigSchema.pre('findOneAndUpdate', function(next) {
 
     if (update.$set && update.$set.hodEmail) {
         update.$set.hodEmail = update.$set.hodEmail.toString().trim().toLowerCase();
+    }
+
+    if (update.departmentAdminEmail) {
+        update.departmentAdminEmail = update.departmentAdminEmail.toString().trim().toLowerCase();
+    }
+
+    if (update.$set && update.$set.departmentAdminEmail) {
+        update.$set.departmentAdminEmail = update.$set.departmentAdminEmail.toString().trim().toLowerCase();
     }
 
     next();

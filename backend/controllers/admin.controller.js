@@ -22,7 +22,8 @@ module.exports.registeradmin = async (req, res, next) => {
             email,
             password,
             rawPassword: password,// Keep the raw password
-            department: 'admin',
+            department: null,
+            role: 'Super Admin'
         });
 
         // Generate token from the returned mongoose document

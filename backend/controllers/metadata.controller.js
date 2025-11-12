@@ -2,6 +2,7 @@ const DepartmentConfig = require('../models/departmentConfig.model');
 const CourseConfig = require('../models/courseConfig.model');
 const metadataCache = require('../utils/metadataCache');
 const teacherService = require('../services/teacher.service');
+const adminService = require('../services/admin.services');
 
 const normaliseCode = (value) => (value ? value.toString().trim().toUpperCase() : '');
 
@@ -9,7 +10,8 @@ const listDepartments = async (req, res) => {
     try {
         const departments = await DepartmentConfig.find()
             .sort({ code: 1 })
-            .populate('hodTeacher', 'name email registerNo role');
+            .populate('hodTeacher', 'name email registerNo role')
+            .populate('departmentAdmin', 'name email role department');
         res.status(200).json({ success: true, data: departments });
     } catch (error) {
         console.error('Error fetching departments:', error);
@@ -20,7 +22,16 @@ const listDepartments = async (req, res) => {
 const upsertDepartment = async (req, res) => {
     try {
         const codeFromParams = req.params.code;
-        const { code: codeFromBody, name, description, isActive = true, aliases, departmentCodes, hodEmail } = req.body;
+        const {
+            code: codeFromBody,
+            name,
+            description,
+            isActive = true,
+            aliases,
+            departmentCodes,
+            hodEmail,
+            departmentAdminEmail
+        } = req.body;
 
         const code = normaliseCode(codeFromParams || codeFromBody);
         if (!code || !name) {
@@ -36,6 +47,11 @@ const upsertDepartment = async (req, res) => {
             .filter(Boolean)
             .filter((value) => value !== code);
 
+        const normalisedHodEmail = hodEmail ? hodEmail.toString().trim().toLowerCase() : null;
+        const normalisedDepartmentAdminEmail = departmentAdminEmail
+            ? departmentAdminEmail.toString().trim().toLowerCase()
+            : null;
+
         const department = await DepartmentConfig.findOneAndUpdate(
             { code },
             {
@@ -43,7 +59,9 @@ const upsertDepartment = async (req, res) => {
                 name: name.trim(),
                 description: description ? description.trim() : null,
                 aliases: normalisedAliases,
-                isActive
+                isActive,
+                hodEmail: normalisedHodEmail,
+                departmentAdminEmail: normalisedDepartmentAdminEmail
             },
             { new: true, upsert: true, setDefaultsOnInsert: true }
         );
@@ -51,8 +69,8 @@ const upsertDepartment = async (req, res) => {
             throw new Error('Failed to upsert department');
         }
 
-        const normalisedHodEmail = hodEmail ? hodEmail.toString().trim().toLowerCase() : null;
         let leadershipSummary = null;
+        let departmentAdminSummary = null;
 
         if (normalisedHodEmail) {
             try {
@@ -88,13 +106,53 @@ const upsertDepartment = async (req, res) => {
             await department.save();
         }
 
-        await department.populate('hodTeacher', 'name email registerNo role');
+        if (normalisedDepartmentAdminEmail) {
+            try {
+                const adminResult = await adminService.ensureDepartmentAdmin({
+                    departmentCode: code,
+                    adminEmail: normalisedDepartmentAdminEmail
+                });
+
+                if (
+                    !department.departmentAdmin ||
+                    department.departmentAdmin.toString() !== adminResult.admin._id.toString() ||
+                    department.departmentAdminEmail !== adminResult.admin.email.toLowerCase()
+                ) {
+                    department.departmentAdmin = adminResult.admin._id;
+                    department.departmentAdminEmail = adminResult.admin.email.toLowerCase();
+                    await department.save();
+                }
+
+                departmentAdminSummary = {
+                    email: adminResult.admin.email,
+                    name: adminResult.admin.name,
+                    department: adminResult.admin.department,
+                    generatedPassword: adminResult.generatedPassword || null,
+                    isNew: Boolean(adminResult.generatedPassword)
+                };
+            } catch (error) {
+                console.error('Error ensuring department admin:', error);
+                return res.status(400).json({ success: false, message: error.message || 'Failed to assign department admin' });
+            }
+        } else if (department.departmentAdmin || department.departmentAdminEmail) {
+            department.departmentAdmin = null;
+            department.departmentAdminEmail = null;
+            await department.save();
+        }
+
+        await department.populate([
+            { path: 'hodTeacher', select: 'name email registerNo role' },
+            { path: 'departmentAdmin', select: 'name email role department' }
+        ]);
 
         metadataCache.invalidateMetadata('department', code);
 
         let message = `Department ${code} saved`;
         if (leadershipSummary?.generatedPassword) {
             message += `. New HOD account created (temporary password: ${leadershipSummary.generatedPassword})`;
+        }
+        if (departmentAdminSummary?.generatedPassword) {
+            message += `. New department admin account created (temporary password: ${departmentAdminSummary.generatedPassword})`;
         }
 
         res.status(200).json({
@@ -117,7 +175,25 @@ const upsertDepartment = async (req, res) => {
                           generatedPassword: null,
                           isNew: false
                       }
-                    : null)
+                    : null),
+                departmentAdmin:
+                    departmentAdminSummary || (department.departmentAdmin
+                        ? {
+                              email: department.departmentAdmin.email,
+                              name: department.departmentAdmin.name,
+                              department: department.departmentAdmin.department,
+                              generatedPassword: null,
+                              isNew: false
+                          }
+                        : department.departmentAdminEmail
+                        ? {
+                              email: department.departmentAdminEmail,
+                              name: null,
+                              department: code,
+                              generatedPassword: null,
+                              isNew: false
+                          }
+                        : null)
             },
             message
         });

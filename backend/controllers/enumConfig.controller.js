@@ -39,15 +39,31 @@ const getEnumByType = async (req, res) => {
         type,
         values: [],
         lastUpdated: Date.now(),
-        updatedBy: req.admin._id
+        updatedBy: req.admin?._id || null
       });
-      await defaultConfig.save();
-      
-      return res.status(200).json({
-        success: true,
-        data: defaultConfig,
-        message: `Created new empty ${type} configuration`
-      });
+
+      try {
+        await defaultConfig.save();
+
+        return res.status(200).json({
+          success: true,
+          data: defaultConfig,
+          message: `Created new empty ${type} configuration`
+        });
+      } catch (saveError) {
+        if (saveError?.code === 11000) {
+          const existing = await EnumConfig.findOne({ type });
+          if (existing) {
+            return res.status(200).json({
+              success: true,
+              data: existing,
+              message: `Loaded existing ${type} configuration`
+            });
+          }
+        }
+
+        throw saveError;
+      }
     }
     
     res.status(200).json({

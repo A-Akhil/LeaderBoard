@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react';
-import { Upload, Users, FileText, UserPlus, Calendar, MessageSquare, Settings, Layers, Info, Shield } from 'lucide-react';
+import { Upload, Users, FileText, UserPlus, Calendar, MessageSquare, Settings, Layers, Info, Shield, Menu, X, LogOut } from 'lucide-react';
 import AdminUpcomingEventForm from '../../components/AdminUpcomingEventForm';
 import UpcomingEventsList from '../../components/UpcomingEventsList';
 import ReportsPage from '../ReportsPage';
@@ -182,6 +182,8 @@ const LabelWithInfo = ({ label, tooltip }) => (
 const AdminDashboard = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('create-class');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [classFile, setClassFile] = useState(null);
   const [studentsFile, setStudentsFile] = useState(null);
   const [teacherFile, setTeacherFile] = useState(null);
@@ -189,6 +191,12 @@ const AdminDashboard = () => {
   const [studentAssignmentFile, setStudentAssignmentFile] = useState(null);
   const [facultyAssignmentFile, setFacultyAssignmentFile] = useState(null);
   const [advisorAssignmentFile, setAdvisorAssignmentFile] = useState(null);
+
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const [bulkImportOptions, setBulkImportOptions] = useState({
     classes: { skipExisting: false },
@@ -247,7 +255,8 @@ const AdminDashboard = () => {
     name: '',
     description: '',
     aliases: '',
-    hodEmail: ''
+    hodEmail: '',
+    departmentAdminEmail: ''
   });
   const [editingDepartmentCode, setEditingDepartmentCode] = useState(null);
 
@@ -1305,6 +1314,8 @@ const AdminDashboard = () => {
           ? value.toUpperCase()
           : name === 'hodEmail'
             ? value.toLowerCase()
+            : name === 'departmentAdminEmail'
+            ? value.toLowerCase()
             : value
     }));
 
@@ -1314,7 +1325,7 @@ const AdminDashboard = () => {
   };
 
   const handleDepartmentReset = () => {
-    setDepartmentForm({ code: '', name: '', description: '', aliases: '', hodEmail: '' });
+    setDepartmentForm({ code: '', name: '', description: '', aliases: '', hodEmail: '', departmentAdminEmail: '' });
     setEditingDepartmentCode(null);
     resetMetadataState('department');
   };
@@ -1325,6 +1336,7 @@ const AdminDashboard = () => {
     const code = departmentForm.code.trim().toUpperCase();
     const name = departmentForm.name.trim();
     const hodEmail = departmentForm.hodEmail.trim().toLowerCase();
+    const departmentAdminEmail = departmentForm.departmentAdminEmail.trim().toLowerCase();
 
     const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -1346,12 +1358,22 @@ const AdminDashboard = () => {
       return;
     }
 
+    if (!departmentAdminEmail || !emailPattern.test(departmentAdminEmail)) {
+      updateMetadataState('department', {
+        status: 'error',
+        message: 'A valid department admin email is required so the system can create the department admin login automatically',
+        details: []
+      });
+      return;
+    }
+
     const payload = {
       code,
       name,
       description: departmentForm.description.trim() || undefined,
       aliases: parseCsvList(departmentForm.aliases),
-      hodEmail
+      hodEmail,
+      departmentAdminEmail
     };
 
     const targetCode = editingDepartmentCode || code;
@@ -1367,7 +1389,7 @@ const AdminDashboard = () => {
         successMessage: `Department ${targetCode} ${editingDepartmentCode ? 'updated' : 'saved'}`
       });
 
-      setDepartmentForm({ code: '', name: '', description: '', aliases: '', hodEmail: '' });
+  setDepartmentForm({ code: '', name: '', description: '', aliases: '', hodEmail: '', departmentAdminEmail: '' });
       setEditingDepartmentCode(null);
       await fetchMetadataLists();
     } catch (error) {
@@ -1385,7 +1407,8 @@ const AdminDashboard = () => {
       name: department.name || '',
       description: department.description || '',
       aliases: Array.isArray(department.aliases) && department.aliases.length > 0 ? department.aliases.join(', ') : '',
-      hodEmail: (department.hodTeacher?.email || department.hodEmail || '').toLowerCase()
+      hodEmail: (department.hodTeacher?.email || department.hodEmail || '').toLowerCase(),
+      departmentAdminEmail: (department.departmentAdmin?.email || department.departmentAdminEmail || '').toLowerCase()
     });
     setEditingDepartmentCode(department.code || null);
     resetMetadataState('department');
@@ -1688,132 +1711,128 @@ const AdminDashboard = () => {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gray-50 py-8 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-7xl mx-auto">
-        {/* Tab Navigation */}
-        <div className="mb-8 border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8">
+  const handleLogout = async () => {
+    try {
+      const token = localStorage.getItem('admin-token');
+      await axios.get(`${VITE_BASE_URL}/admin/logout`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      localStorage.removeItem('admin-token');
+      localStorage.removeItem('admin-data');
+      navigate('/admin-login');
+    } catch (err) {
+      console.error('Error logging out:', err);
+      localStorage.removeItem('admin-token');
+      localStorage.removeItem('admin-data');
+      navigate('/admin-login');
+    }
+  };
+
+  const Sidebar = () => {
+    const navItems = [
+      { id: 'new-year-import', label: 'New Year Import', icon: Upload },
+      ...(isSuperAdmin ? [
+        { id: 'metadata', label: 'Metadata Management', icon: Layers },
+        { id: 'leadership', label: 'Leadership Roles', icon: Shield }
+      ] : []),
+      { id: 'create-class', label: 'Create Class', icon: Upload },
+      { id: 'add-student', label: 'Add Students', icon: Users },
+      { id: 'register-teacher', label: 'Register Teacher', icon: UserPlus },
+      { id: 'register-student', label: 'Register Student', icon: UserPlus },
+      { id: 'assign-students', label: 'Assign Students', icon: Upload },
+      { id: 'assign-faculty', label: 'Assign Faculty', icon: Upload },
+      { id: 'assign-advisors', label: 'Assign Advisors', icon: Upload },
+      { id: 'reports', label: 'Reports', icon: FileText },
+      { id: 'upcoming-events', label: 'Manage Upcoming Events', icon: Calendar },
+      { id: 'feedback', label: 'Feedback Review', icon: MessageSquare }
+    ];
+
+    return (
+      <div className={`
+        ${windowWidth >= 1024 
+          ? 'fixed left-0 top-0 h-full w-64 bg-white shadow-lg p-6 z-20 overflow-y-auto' 
+          : `fixed z-50 top-0 left-0 w-64 h-full bg-white shadow-lg p-6 transform transition-transform duration-300 overflow-y-auto ${
+              isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'
+            }`
+        }
+      `}>
+        <div className="flex flex-col justify-start">
+          <h1 className="text-2xl font-bold text-gray-800 mb-6">Admin Portal</h1>
+          <nav className="space-y-2 flex-grow">
+            {navItems.map(({ id, label, icon: Icon }) => (
+              <button
+                key={id}
+                onClick={() => {
+                  setActiveTab(id);
+                  windowWidth < 1024 && setIsMobileMenuOpen(false);
+                }}
+                className={`
+                  flex items-center w-full p-3 rounded-lg hover:bg-gray-100 
+                  ${activeTab === id ? 'bg-blue-50 font-medium text-blue-600' : 'text-gray-600'}
+                `}
+              >
+                <Icon className={`mr-3 ${activeTab === id ? 'text-blue-600' : ''}`} size={20} />
+                {label}
+              </button>
+            ))}
             <button
-              onClick={() => setActiveTab('new-year-import')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'new-year-import' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
+              onClick={() => {
+                navigate('/admin/system-config');
+                windowWidth < 1024 && setIsMobileMenuOpen(false);
+              }}
+              className="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 text-gray-600"
             >
-              <Upload size={20} />
-              New Year Import
-            </button>
-            {isSuperAdmin && (
-              <>
-                <button
-                  onClick={() => setActiveTab('metadata')}
-                  className={`w-full p-4 flex items-center gap-2 ${activeTab === 'metadata' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                    }`}
-                >
-                  <Layers size={20} />
-                  Metadata Management
-                </button>
-                <button
-                  onClick={() => setActiveTab('leadership')}
-                  className={`w-full p-4 flex items-center gap-2 ${activeTab === 'leadership' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                    }`}
-                >
-                  <Shield size={20} />
-                  Leadership Roles
-                </button>
-              </>
-            )}
-            <button
-              onClick={() => setActiveTab('create-class')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'create-class' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <Upload size={20} />
-              Create Class
-            </button>
-            <button
-              onClick={() => setActiveTab('add-student')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'add-student' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <Users size={20} />
-              Add Students
-            </button>
-            <button
-              onClick={() => setActiveTab('register-teacher')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'register-teacher' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <UserPlus size={20} />
-              Register Teacher
-            </button>
-            <button
-              onClick={() => setActiveTab('register-student')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'register-student' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <UserPlus size={20} />
-              Register Student
-            </button>
-            <button
-              onClick={() => setActiveTab('assign-students')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'assign-students' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <Upload size={20} />
-              Assign Students
-            </button>
-            <button
-              onClick={() => setActiveTab('assign-faculty')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'assign-faculty' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <Upload size={20} />
-              Assign Faculty
-            </button>
-            <button
-              onClick={() => setActiveTab('assign-advisors')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'assign-advisors' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <Upload size={20} />
-              Assign Advisors
-            </button>
-            <button
-              onClick={() => setActiveTab('reports')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'reports' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <FileText size={20} />
-              Reports
-            </button>
-            <button
-              onClick={() => setActiveTab('upcoming-events')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'upcoming-events' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <Calendar size={20} />
-              Manage Upcoming Events
-            </button>
-            <button
-              onClick={() => setActiveTab('feedback')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'feedback' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <MessageSquare size={20} />
-              Feedback Review
-            </button>
-            <button
-              onClick={() => navigate('/admin/system-config')}
-              className={`w-full p-4 flex items-center gap-2 ${activeTab === 'enum-management' ? 'bg-blue-50 text-blue-600' : 'text-gray-600'
-                }`}
-            >
-              <Settings size={20} />
+              <Settings className="mr-3" size={20} />
               System Configuration
             </button>
           </nav>
+          <button 
+            onClick={() => {
+              handleLogout();
+              windowWidth < 1024 && setIsMobileMenuOpen(false);
+            }}
+            className="flex items-center w-full p-3 bg-red-500 text-white mt-3 rounded-lg hover:bg-red-600"
+          >
+            <LogOut className="mr-3" size={20} />
+            Logout
+          </button>
         </div>
+      </div>
+    );
+  };
 
-        {/* Tab Content */}
+  const MobileNav = () => (
+    <div className="lg:hidden fixed top-0 left-0 right-0 bg-white shadow-md p-4 z-30 flex justify-between items-center">
+      <h1 className="font-bold text-lg">Admin Portal</h1>
+      <button onClick={() => setIsMobileMenuOpen(true)}>
+        <Menu size={24} />
+      </button>
+    </div>
+  );
+
+  return (
+    <div className="flex h-screen">
+      {windowWidth >= 1024 && <Sidebar />}
+      {windowWidth < 1024 && <MobileNav />}
+      {windowWidth < 1024 && isMobileMenuOpen && (
+        <>
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-40" 
+            onClick={() => setIsMobileMenuOpen(false)}
+          />
+          <Sidebar />
+        </>
+      )}
+      
+      <div className={`
+        ${windowWidth >= 1024 ? 'ml-64' : 'mt-16'} 
+        flex-1 bg-gray-50 overflow-y-auto
+      `}>
+        <div className="p-4 sm:p-6 lg:p-8">
+          {/* Tab Content */}
         {activeTab === 'new-year-import' && (
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-2xl font-semibold text-gray-800">New Academic Year Bulk Import</h2>
@@ -1988,6 +2007,22 @@ const AdminDashboard = () => {
                         The system auto-creates or updates the department HOD login using this email.
                       </p>
                     </div>
+                    <div className="md:col-span-2">
+                      <label className="block text-sm font-medium text-gray-700">Department Admin Email</label>
+                      <input
+                        name="departmentAdminEmail"
+                        type="email"
+                        value={departmentForm.departmentAdminEmail}
+                        onChange={handleDepartmentInputChange}
+                        className="mt-1 w-full rounded border border-gray-300 px-3 py-2 text-sm"
+                        placeholder="department-admin@example.edu"
+                        required
+                      />
+                      <p className="mt-1 text-xs text-gray-500">
+                        A dedicated department admin login is created or updated automatically with this email and tied to
+                        the department.
+                      </p>
+                    </div>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <button
@@ -2046,6 +2081,15 @@ const AdminDashboard = () => {
                             <p className="mt-1 text-xs text-gray-500">HOD Email: {dept.hodEmail}</p>
                           ) : (
                             <p className="mt-1 text-xs text-gray-500">HOD not assigned yet.</p>
+                          )}
+                          {dept.departmentAdmin ? (
+                            <p className="mt-1 text-xs text-gray-500">
+                              Department Admin: {dept.departmentAdmin.name} ({dept.departmentAdmin.email})
+                            </p>
+                          ) : dept.departmentAdminEmail ? (
+                            <p className="mt-1 text-xs text-gray-500">Department Admin Email: {dept.departmentAdminEmail}</p>
+                          ) : (
+                            <p className="mt-1 text-xs text-gray-500">Department admin login not assigned yet.</p>
                           )}
                           {Array.isArray(dept.aliases) && dept.aliases.length > 0 && (
                             <p className="mt-1 text-xs text-gray-500">Aliases: {dept.aliases.join(', ')}</p>
@@ -2266,6 +2310,15 @@ const AdminDashboard = () => {
                 </div>
               </section>
             </div>
+          </div>
+        )}
+
+        {activeTab === 'leadership' && isSuperAdmin && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-2xl font-semibold text-gray-800">Leadership Roles Management</h2>
+            <p className="mt-2 text-sm text-gray-600">
+              Leadership roles management interface coming soon.
+            </p>
           </div>
         )}
 
@@ -2571,6 +2624,7 @@ const AdminDashboard = () => {
             </p>
           </div>
         )}
+        </div>
       </div>
     </div>
   );

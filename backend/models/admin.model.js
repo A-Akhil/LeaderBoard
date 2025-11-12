@@ -26,18 +26,31 @@ const adminSchema = new mongoose.Schema({
         enum: ['Super Admin', 'Department Admin'],
         default: 'Department Admin'
     },
-    // department: {
-    //     type: String,
-    //     required: function() {
-    //         return this.role === 'Department Admin';
-    //     }
-    // }
+    department: {
+        type: String,
+        uppercase: true,
+        trim: true,
+        default: null,
+        validate: {
+            validator(value) {
+                if (this.role !== 'Department Admin') {
+                    return true;
+                }
+                return Boolean(value);
+            },
+            message: 'Department Admin accounts must reference a department code'
+        }
+    }
 }, {
     timestamps: true
 });
 
 // Hash password before saving
 adminSchema.pre('save', async function(next) {
+    if (this.department) {
+        this.department = this.department.toString().trim().toUpperCase();
+    }
+
     if (!this.isModified('password')) return next();
     
     try {
@@ -47,6 +60,25 @@ adminSchema.pre('save', async function(next) {
     } catch (error) {
         next(error);
     }
+});
+
+adminSchema.pre('findOneAndUpdate', function(next) {
+    const update = this.getUpdate();
+    if (!update) {
+        return next();
+    }
+
+    const normalise = (value) => (value ? value.toString().trim().toUpperCase() : value);
+
+    if (typeof update.department !== 'undefined') {
+        update.department = normalise(update.department);
+    }
+
+    if (update.$set && typeof update.$set.department !== 'undefined') {
+        update.$set.department = normalise(update.$set.department);
+    }
+
+    next();
 });
 
 adminSchema.methods.generateAuthToken = function () {
