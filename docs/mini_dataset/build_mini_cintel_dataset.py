@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
-"""Generate miniature CINTEL-only datasets for bulk import testing.
+"""Generate miniature datasets for CINTEL and CTECH departments for bulk import testing.
 
-This script creates a compact set of CSV files covering:
+This script creates a compact set of CSV files for each department covering:
 - Classes (5 per year across years 1-4)
 - Students (20 per class)
 - Teachers (faculty per class + academic advisors per year)
@@ -20,15 +20,29 @@ from pathlib import Path
 from typing import Dict, Iterable, List, Sequence, Tuple
 
 BASE_DIR = Path(__file__).resolve().parent
-DEPARTMENT_CODE = "CINTEL"
-COURSE_CODES: Sequence[str] = (
-    "BTECH-CINTEL-AI",
-    "BTECH-CINTEL-CSE-AIML",
-    "BTECH-CINTEL-CSE-SOFT-ENGI",
-)
+
+DEPARTMENTS_CONFIG = {
+    "CINTEL": {
+        "name": "Computing Intelligence",
+        "courses": [
+            "BTECH-CINTEL-AI",
+            "BTECH-CINTEL-CSE-AIML",
+            "BTECH-CINTEL-CSE-SOFT-ENGI",
+        ],
+        "classes_per_year": 5,  # Number of sections per year for this department (can be changed easily)
+    },
+    "CTECH": {
+        "name": "Computing Technologies",
+        "courses": [
+            "BTECH-CTECH-CSE",
+            "BTECH-CTECH-CSE-CYBE-SECU",
+            "BTECH-CTECH-CSE-IT",
+        ],
+        "classes_per_year": 5,  # Number of sections per year for this department (can be changed easily)
+    },
+}
+
 STUDENTS_PER_CLASS = 20
-CLASSES_PER_YEAR = 5
-SECTIONS = ["A", "B", "C", "D", "E"]
 DEFAULT_PASSWORD = "Password@123"
 
 ACADEMIC_YEAR_BY_YEAR: Dict[int, str] = {
@@ -126,32 +140,48 @@ class TeacherRecord:
     managed_departments: str = ""
 
 
-def _ensure_output_dir() -> Path:
-    BASE_DIR.mkdir(parents=True, exist_ok=True)
-    return BASE_DIR
+def _generate_section_label(section_index: int) -> str:
+    """Generate section label like A, B, ..., Z, AA, AB, ..., ZZ, AAA, etc."""
+    label = ""
+    index = section_index
+    while True:
+        label = chr(ord('A') + (index % 26)) + label
+        index = index // 26
+        if index == 0:
+            break
+        index -= 1  # Adjust for 0-based to 1-based conversion
+    return label
 
 
-def _generate_classes() -> List[ClassRecord]:
+def _ensure_output_dir(department_code: str) -> Path:
+    output_dir = BASE_DIR / department_code.lower()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    return output_dir
+
+
+def _generate_classes(department_code: str, course_codes: Sequence[str], classes_per_year: int, section_start_index: int) -> List[ClassRecord]:
+    """Generate classes with unique section codes starting from section_start_index."""
     classes: List[ClassRecord] = []
     for year in sorted(ACADEMIC_YEAR_BY_YEAR):
         academic_year = ACADEMIC_YEAR_BY_YEAR[year]
-        for index in range(CLASSES_PER_YEAR):
-            section_prefix = SECTIONS[index % len(SECTIONS)]
+        for index in range(classes_per_year):
+            section_index = section_start_index + index
+            section_prefix = _generate_section_label(section_index)
             section = f"{section_prefix}{year}"
-            course_code = COURSE_CODES[(year - 1 + index) % len(COURSE_CODES)]
+            course_code = course_codes[(year - 1 + index) % len(course_codes)]
             classes.append(
                 ClassRecord(
                     year=year,
                     section=section,
                     academic_year=academic_year,
-                    department=DEPARTMENT_CODE,
+                    department=department_code,
                     course_code=course_code,
                 )
             )
     return classes
 
 
-def _student_identity(global_index: int) -> Tuple[str, str]:
+def _student_identity(global_index: int, department_code: str) -> Tuple[str, str]:
     first = FIRST_NAMES[global_index % len(FIRST_NAMES)]
     last = LAST_NAMES[(global_index // len(FIRST_NAMES)) % len(LAST_NAMES)]
     full_name = f"{first} {last}"
@@ -161,7 +191,7 @@ def _student_identity(global_index: int) -> Tuple[str, str]:
 
 
 def _generate_students(
-    classes: Sequence[ClassRecord],
+    classes: Sequence[ClassRecord], department_code: str
 ) -> Tuple[List[StudentRecord], List[Tuple[str, str]]]:
     students: List[StudentRecord] = []
     assignments: List[Tuple[str, str]] = []
@@ -172,12 +202,12 @@ def _generate_students(
     for class_record in classes:
         per_year_counters[class_record.year] += 1
         for student_idx in range(STUDENTS_PER_CLASS):
-            name, email = _student_identity(global_index)
+            name, email = _student_identity(global_index, department_code)
             global_index += 1
 
             per_year_sequence = (per_year_counters[class_record.year] - 1) * STUDENTS_PER_CLASS + (student_idx + 1)
             registration_year = REGISTRATION_YEAR_BY_YEAR[class_record.year]
-            register_no = f"RA{registration_year}{DEPARTMENT_CODE[:3]}{per_year_sequence:04d}"
+            register_no = f"RA{registration_year}{department_code[:3]}{per_year_sequence:04d}"
 
             student = StudentRecord(
                 name=name,
@@ -196,14 +226,14 @@ def _generate_students(
 
 
 def _generate_faculty_teachers(
-    classes: Sequence[ClassRecord],
+    classes: Sequence[ClassRecord], department_code: str
 ) -> Tuple[List[TeacherRecord], List[Tuple[str, str]]]:
     teachers: List[TeacherRecord] = []
     assignments: List[Tuple[str, str]] = []
 
     for idx, class_record in enumerate(classes, start=1):
-        name = f"CINTEL Faculty {idx:02d}"
-        email = f"faculty{idx:02d}.{DEPARTMENT_CODE.lower()}@university.edu"
+        name = f"{department_code} Faculty {idx:02d}"
+        email = f"faculty{idx:02d}.{department_code.lower()}@university.edu"
         register_no = f"EMP98{idx:03d}"
         teacher = TeacherRecord(
             name=name,
@@ -220,7 +250,7 @@ def _generate_faculty_teachers(
 
 
 def _generate_academic_advisors(
-    classes: Sequence[ClassRecord],
+    classes: Sequence[ClassRecord], department_code: str
 ) -> Tuple[List[TeacherRecord], List[Tuple[str, str]]]:
     advisors: List[TeacherRecord] = []
     assignments: List[Tuple[str, str]] = []
@@ -232,14 +262,14 @@ def _generate_academic_advisors(
     for year in sorted(classes_by_year):
         for idx in range(2):  # two advisors per year
             adviser_index = len(advisors) + 1
-            name = f"CINTEL Academic Advisor Y{year} - {idx + 1:02d}"
-            email = f"advisorY{year}{idx + 1:02d}.{DEPARTMENT_CODE.lower()}@university.edu"
+            name = f"{department_code} Academic Advisor Y{year} - {idx + 1:02d}"
+            email = f"advisorY{year}{idx + 1:02d}.{department_code.lower()}@university.edu"
             register_no = f"EMP97{year}{idx + 1:02d}"
             advisor = TeacherRecord(
                 name=name,
                 email=email,
                 register_no=register_no,
-                department=DEPARTMENT_CODE,
+                department=department_code,
                 role="Academic Advisor",
                 password=DEFAULT_PASSWORD,
             )
@@ -259,13 +289,19 @@ def _write_csv(path: Path, fieldnames: Sequence[str], rows: Iterable[Dict[str, o
             writer.writerow(row)
 
 
-def build_dataset() -> None:
-    output_dir = _ensure_output_dir()
+def build_dataset_for_department(department_code: str, department_config: Dict, section_start_index: int) -> int:
+    """Generate dataset for a single department.
+    
+    Returns the next available section index for the next department.
+    """
+    output_dir = _ensure_output_dir(department_code)
+    course_codes = department_config["courses"]
+    classes_per_year = department_config["classes_per_year"]
 
-    classes = _generate_classes()
-    students, student_assignments = _generate_students(classes)
-    faculty_teachers, faculty_assignments = _generate_faculty_teachers(classes)
-    academic_advisors, advisor_assignments = _generate_academic_advisors(classes)
+    classes = _generate_classes(department_code, course_codes, classes_per_year, section_start_index)
+    students, student_assignments = _generate_students(classes, department_code)
+    faculty_teachers, faculty_assignments = _generate_faculty_teachers(classes, department_code)
+    academic_advisors, advisor_assignments = _generate_academic_advisors(classes, department_code)
 
     teacher_records = faculty_teachers + academic_advisors
 
@@ -280,7 +316,7 @@ def build_dataset() -> None:
         for record in classes
     ]
     _write_csv(
-        output_dir / "classes_cintel_mini.csv",
+        output_dir / f"classes_{department_code.lower()}_mini.csv",
         ["year", "section", "academicYear", "department", "className"],
         class_rows,
     )
@@ -299,7 +335,7 @@ def build_dataset() -> None:
         for student in students
     ]
     _write_csv(
-        output_dir / "students_cintel_mini.csv",
+        output_dir / f"students_{department_code.lower()}_mini.csv",
         [
             "name",
             "email",
@@ -326,30 +362,47 @@ def build_dataset() -> None:
         for teacher in teacher_records
     ]
     _write_csv(
-        output_dir / "teachers_cintel_mini.csv",
+        output_dir / f"teachers_{department_code.lower()}_mini.csv",
         ["name", "email", "registerNo", "department", "role", "password", "managedDepartments"],
         teacher_rows,
     )
 
     _write_csv(
-        output_dir / "faculty_class_assignments_cintel_mini.csv",
+        output_dir / f"faculty_class_assignments_{department_code.lower()}_mini.csv",
         ["facultyRegNo", "className"],
         ({"facultyRegNo": reg_no, "className": class_name} for reg_no, class_name in faculty_assignments),
     )
 
     _write_csv(
-        output_dir / "student_class_assignments_cintel_mini.csv",
+        output_dir / f"student_class_assignments_{department_code.lower()}_mini.csv",
         ["studentRegNo", "className"],
         ({"studentRegNo": reg_no, "className": class_name} for reg_no, class_name in student_assignments),
     )
 
     _write_csv(
-        output_dir / "advisor_class_assignments_cintel_mini.csv",
+        output_dir / f"advisor_class_assignments_{department_code.lower()}_mini.csv",
         ["advisorRegNo", "className"],
         ({"advisorRegNo": reg_no, "className": class_name} for reg_no, class_name in advisor_assignments),
     )
 
-    print("Generated mini dataset in", output_dir)
+    print(f"Generated mini dataset for {department_code} in {output_dir}")
+    print(f"  - {len(classes)} classes")
+    print(f"  - {len(students)} students")
+    print(f"  - {len(teacher_records)} teachers ({len(faculty_teachers)} faculty, {len(academic_advisors)} advisors)")
+    
+    # Return the next available section index
+    return section_start_index + classes_per_year
+
+
+def build_dataset() -> None:
+    """Generate datasets for all configured departments with dynamically assigned unique sections."""
+    section_counter = 0
+    
+    for department_code, department_config in DEPARTMENTS_CONFIG.items():
+        section_counter = build_dataset_for_department(department_code, department_config, section_counter)
+    
+    print("\nAll datasets generated successfully!")
+    print(f"Total unique sections used: {section_counter}")
 
 
 if __name__ == "__main__":

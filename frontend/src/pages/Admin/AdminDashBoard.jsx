@@ -31,11 +31,10 @@ const COURSE_FIELD_TOOLTIPS = {
   departmentCode: 'Owning department code that must already exist in metadata. Determines department validations for imports and assignments.'
 };
 
-const BUNDLE_STEP_KEYS = ['classes', 'teachers', 'students', 'studentAssignments', 'facultyAssignments', 'advisorAssignments'];
+const BUNDLE_STEP_KEYS = ['classes', 'students', 'studentAssignments', 'facultyAssignments', 'advisorAssignments'];
 
 const BUNDLE_FIELD_MAP = {
   classes: 'classesCsv',
-  teachers: 'teachersCsv',
   students: 'studentsCsv',
   studentAssignments: 'studentAssignmentsCsv',
   facultyAssignments: 'facultyAssignmentsCsv',
@@ -44,7 +43,6 @@ const BUNDLE_FIELD_MAP = {
 
 const BUNDLE_SKIP_FIELD_MAP = {
   classes: 'skipExistingClasses',
-  teachers: 'skipExistingTeachers',
   students: 'skipExistingStudents',
   studentAssignments: 'skipExistingStudentAssignments',
   facultyAssignments: 'skipExistingFacultyAssignments',
@@ -185,9 +183,8 @@ const AdminDashboard = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [classFile, setClassFile] = useState(null);
+  const [teachersFile, setTeachersFile] = useState(null);
   const [studentsFile, setStudentsFile] = useState(null);
-  const [teacherFile, setTeacherFile] = useState(null);
-  const [registerStudentFile, setRegisterStudentFile] = useState(null);
   const [studentAssignmentFile, setStudentAssignmentFile] = useState(null);
   const [facultyAssignmentFile, setFacultyAssignmentFile] = useState(null);
   const [advisorAssignmentFile, setAdvisorAssignmentFile] = useState(null);
@@ -218,8 +215,6 @@ const AdminDashboard = () => {
   const createInitialUploadStates = () => ({
     classes: createStatus(),
     students: createStatus(),
-    teachers: createStatus(),
-    registerStudent: createStatus(),
     studentAssignments: createStatus(),
     facultyAssignments: createStatus(),
     advisorAssignments: createStatus()
@@ -798,31 +793,16 @@ const AdminDashboard = () => {
     });
   };
 
-  const handleRegisterTeacher = (event) => {
+  const handleAddTeachers = (event) => {
     event.preventDefault();
     const formElement = event.currentTarget;
     submitCsv({
       key: 'teachers',
-      file: teacherFile,
+      file: teachersFile,
       endpoint: '/teacher/bulk-register',
       successMessage: 'Bulk teacher registration completed',
       onSuccess: () => {
-        setTeacherFile(null);
-        formElement.reset();
-      }
-    });
-  };
-
-  const handleRegisterStudent = (event) => {
-    event.preventDefault();
-    const formElement = event.currentTarget;
-    submitCsv({
-      key: 'registerStudent',
-      file: registerStudentFile,
-      endpoint: '/student/bulk-register',
-      successMessage: 'Bulk student registration completed',
-      onSuccess: () => {
-        setRegisterStudentFile(null);
+        setTeachersFile(null);
         formElement.reset();
       }
     });
@@ -890,22 +870,8 @@ const AdminDashboard = () => {
         skipExisting: bulkImportOptions.classes?.skipExisting ?? false
       },
       {
-        key: 'teachers',
-        step: '2',
-        title: 'Upload Teachers',
-        description: 'Registers faculty, advisors, and leadership roles.',
-        file: teacherFile,
-        setFile: setTeacherFile,
-        endpoint: '/teacher/bulk-register',
-        successMessage: 'Bulk teacher registration completed',
-        templatePath: 'docs/generated_datasets/teachers.csv',
-        extraNote: 'Ensure metadata for all departments and courses exists before this step.',
-        supportsSkipExisting: true,
-        skipExisting: bulkImportOptions.teachers?.skipExisting ?? false
-      },
-      {
         key: 'students',
-        step: '3',
+        step: '2',
         title: 'Upload Students',
         description: 'Registers new student batches with course-aware validation.',
         file: studentsFile,
@@ -919,7 +885,7 @@ const AdminDashboard = () => {
       },
       {
         key: 'studentAssignments',
-        step: '4',
+        step: '3',
         title: 'Assign Students to Classes',
         description: 'Links each student register number to their class.',
         file: studentAssignmentFile,
@@ -933,7 +899,7 @@ const AdminDashboard = () => {
       },
       {
         key: 'facultyAssignments',
-        step: '5',
+        step: '4',
         title: 'Assign Faculty to Classes',
         description: 'Populates faculty advisors for every class.',
         file: facultyAssignmentFile,
@@ -947,7 +913,7 @@ const AdminDashboard = () => {
       },
       {
         key: 'advisorAssignments',
-        step: '6',
+        step: '5',
         title: 'Assign Academic Advisors',
         description: 'Attaches academic advisors to each class.',
         file: advisorAssignmentFile,
@@ -962,7 +928,6 @@ const AdminDashboard = () => {
     ],
     [
       classFile,
-      teacherFile,
       studentsFile,
       studentAssignmentFile,
       facultyAssignmentFile,
@@ -1739,9 +1704,8 @@ const AdminDashboard = () => {
         { id: 'leadership', label: 'Leadership Roles', icon: Shield }
       ] : []),
       { id: 'create-class', label: 'Create Class', icon: Upload },
+      { id: 'add-teacher', label: 'Add Teachers', icon: UserPlus },
       { id: 'add-student', label: 'Add Students', icon: Users },
-      { id: 'register-teacher', label: 'Register Teacher', icon: UserPlus },
-      { id: 'register-student', label: 'Register Student', icon: UserPlus },
       { id: 'assign-students', label: 'Assign Students', icon: Upload },
       { id: 'assign-faculty', label: 'Assign Faculty', icon: Upload },
       { id: 'assign-advisors', label: 'Assign Advisors', icon: Upload },
@@ -1778,16 +1742,18 @@ const AdminDashboard = () => {
                 {label}
               </button>
             ))}
-            <button
-              onClick={() => {
-                navigate('/admin/system-config');
-                windowWidth < 1024 && setIsMobileMenuOpen(false);
-              }}
-              className="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 text-gray-600"
-            >
-              <Settings className="mr-3" size={20} />
-              System Configuration
-            </button>
+            {isSuperAdmin && (
+              <button
+                onClick={() => {
+                  navigate('/admin/system-config');
+                  windowWidth < 1024 && setIsMobileMenuOpen(false);
+                }}
+                className="flex items-center w-full p-3 rounded-lg hover:bg-gray-100 text-gray-600"
+              >
+                <Settings className="mr-3" size={20} />
+                System Configuration
+              </button>
+            )}
           </nav>
           <button 
             onClick={() => {
@@ -2360,6 +2326,44 @@ const AdminDashboard = () => {
           </div>
         )}
 
+        {activeTab === 'add-teacher' && (
+          <div className="bg-white p-6 rounded-lg shadow">
+            <h2 className="text-2xl font-semibold mb-4">Add Teachers</h2>
+            <form onSubmit={handleAddTeachers}>
+              <div className="mb-4">
+                <label className="block text-gray-700 mb-2">Upload Teachers CSV</label>
+                <input
+                  type="file"
+                  accept=".csv"
+                  onChange={(e) => handleFileChange(e, setTeachersFile, 'teachers')}
+                  className="w-full p-2 border rounded"
+                />
+                <p className="text-sm text-gray-500 mt-1">
+                  Please upload a CSV file with teacher details
+                </p>
+                <div className="mt-2 flex flex-wrap gap-2">
+                  <button
+                    type="button"
+                    onClick={() => handleTemplateDownload('teachers')}
+                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
+                    disabled={templateDownloadStates?.teachers?.status === 'loading'}
+                  >
+                    {templateDownloadStates?.teachers?.status === 'loading' ? 'Preparing…' : 'Download Template'}
+                  </button>
+                </div>
+                {renderTemplateStatus('teachers')}
+              </div>
+              <button
+                type="submit"
+                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+              >
+                Upload and Add Teachers
+              </button>
+            </form>
+            {renderStatus('teachers')}
+          </div>
+        )}
+
         {activeTab === 'add-student' && (
           <div className="bg-white p-6 rounded-lg shadow">
             <h2 className="text-2xl font-semibold mb-4">Add Students</h2>
@@ -2395,82 +2399,6 @@ const AdminDashboard = () => {
               </button>
             </form>
             {renderStatus('students')}
-          </div>
-        )}
-
-        {activeTab === 'register-teacher' && (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-2xl font-semibold mb-4">Register Teacher</h2>
-            <form onSubmit={handleRegisterTeacher}>
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Upload Teacher CSV</label>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={(e) => handleFileChange(e, setTeacherFile, 'teachers')}
-                  className="w-full p-2 border rounded"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Please upload a CSV file with teacher details
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleTemplateDownload('teachers')}
-                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
-                    disabled={templateDownloadStates?.teachers?.status === 'loading'}
-                  >
-                    {templateDownloadStates?.teachers?.status === 'loading' ? 'Preparing…' : 'Download Template'}
-                  </button>
-                </div>
-                {renderTemplateStatus('teachers')}
-              </div>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Upload and Register Teacher
-              </button>
-            </form>
-            {renderStatus('teachers')}
-          </div>
-        )}
-
-        {activeTab === 'register-student' && (
-          <div className="bg-white p-6 rounded-lg shadow">
-            <h2 className="text-2xl font-semibold mb-4">Register Student</h2>
-            <form onSubmit={handleRegisterStudent}>
-              <div className="mb-4">
-                <label className="block text-gray-700 mb-2">Upload Student CSV</label>
-                <input
-                  type="file"
-                  accept=".csv"
-                  onChange={(e) => handleFileChange(e, setRegisterStudentFile, 'registerStudent')}
-                  className="w-full p-2 border rounded"
-                />
-                <p className="text-sm text-gray-500 mt-1">
-                  Please upload a CSV file with student details
-                </p>
-                <div className="mt-2 flex flex-wrap gap-2">
-                  <button
-                    type="button"
-                    onClick={() => handleTemplateDownload('registerStudent')}
-                    className="inline-flex items-center rounded border border-blue-200 px-3 py-2 text-sm font-medium text-blue-700 hover:bg-blue-50 transition disabled:opacity-60"
-                    disabled={templateDownloadStates?.registerStudent?.status === 'loading'}
-                  >
-                    {templateDownloadStates?.registerStudent?.status === 'loading' ? 'Preparing…' : 'Download Template'}
-                  </button>
-                </div>
-                {renderTemplateStatus('registerStudent')}
-              </div>
-              <button
-                type="submit"
-                className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-              >
-                Upload and Register Student
-              </button>
-            </form>
-            {renderStatus('registerStudent')}
           </div>
         )}
 
