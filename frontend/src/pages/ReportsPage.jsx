@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { 
@@ -12,8 +12,56 @@ import ClassAnalysisSection from '../components/reports/ClassAnalysisSection';
 import StudentsSection from '../components/reports/StudentsSection';
 import ReportsDownloadSection from '../components/reports/ReportsDownloadSection';
 
+const decodeTokenPayload = (token) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(atob(base64).split('').map((c) => {
+      return `%${('00' + c.charCodeAt(0).toString(16)).slice(-2)}`;
+    }).join(''));
+    return JSON.parse(jsonPayload);
+  } catch (error) {
+    return null;
+  }
+};
+
+const isTokenValid = (token) => {
+  const payload = decodeTokenPayload(token);
+  if (!payload || !payload.exp) {
+    return false;
+  }
+  const expiryMs = payload.exp * 1000;
+  return expiryMs > Date.now();
+};
+
+const resolveReportAuth = () => {
+  if (typeof window === 'undefined') {
+    return { token: null, context: null };
+  }
+
+  const teacherToken = localStorage.getItem('teacher-token');
+  if (teacherToken) {
+    if (isTokenValid(teacherToken)) {
+      return { token: teacherToken, context: 'teacher' };
+    }
+    localStorage.removeItem('teacher-token');
+  }
+
+  const adminToken = localStorage.getItem('admin-token');
+  if (adminToken) {
+    if (isTokenValid(adminToken)) {
+      return { token: adminToken, context: 'admin' };
+    }
+    localStorage.removeItem('admin-token');
+  }
+
+  return { token: null, context: null };
+};
+
 const ReportsPage = ({ userData }) => {
   const navigate = useNavigate();
+  const [authContext, setAuthContext] = useState(() => resolveReportAuth().context);
+  const authWarningShownRef = useRef(false);
   const [loading, setLoading] = useState(true);
   const [yearFilter, setYearFilter] = useState("");
   const [advisorYear, setAdvisorYear] = useState(null);
@@ -42,15 +90,25 @@ const ReportsPage = ({ userData }) => {
     { id: 'downloads', label: 'Downloads', icon: <Download size={20} /> }
   ];
 
-  // Create authenticated axios instance
-  const createAuthAxios = () => {
-    const token = localStorage.getItem("teacher-token");
+  const createAuthAxios = useCallback(() => {
+    const { token, context } = resolveReportAuth();
+
+    if (context !== authContext) {
+      setAuthContext(context);
+    }
+
     if (!token) {
-      console.error("No authentication token found");
-      navigate("/teacher-login");
+      if (!authWarningShownRef.current) {
+        toast.error('Please log in to view reports');
+        authWarningShownRef.current = true;
+      }
+      const onAdminRoute = window.location.pathname.includes('admin');
+      navigate(onAdminRoute ? '/admin-login' : '/teacher-login');
       return null;
     }
-    
+
+    authWarningShownRef.current = false;
+
     return axios.create({
       baseURL: import.meta.env.VITE_BASE_URL,
       headers: {
@@ -58,7 +116,7 @@ const ReportsPage = ({ userData }) => {
         'Content-Type': 'application/json'
       }
     });
-  };
+  }, [authContext, navigate]);
 
   // Helper function for API calls - now includes year filter
   const fetchFromApi = async (endpoint, params = {}) => {
@@ -80,8 +138,12 @@ const ReportsPage = ({ userData }) => {
       console.error('Error details:', error.response?.data || error.message);
       
       if (error.response?.status === 401) {
-        // If unauthorized, redirect to login
-        navigate("/teacher-login");
+        const { context } = resolveReportAuth();
+        if (context === 'admin' || authContext === 'admin') {
+          navigate('/admin-login');
+        } else {
+          navigate('/teacher-login');
+        }
       }
       
       return { 
@@ -93,8 +155,11 @@ const ReportsPage = ({ userData }) => {
 
   // Reload data when year filter changes
   useEffect(() => {
+    if (!authContext) {
+      return;
+    }
     fetchReportsData();
-  }, [yearFilter]);
+  }, [yearFilter, authContext]);
 
   // Main data fetching function
   const fetchReportsData = async () => {
@@ -160,8 +225,11 @@ const ReportsPage = ({ userData }) => {
 
   // Initial data load
   useEffect(() => {
+    if (!authContext) {
+      return;
+    }
     fetchReportsData();
-  }, [navigate, userData?.role]);
+  }, [navigate, userData?.role, authContext]);
 
   // UseEffect to set the year filter when component loads
   useEffect(() => {
@@ -174,33 +242,34 @@ const ReportsPage = ({ userData }) => {
   // Detect advisor's assigned year when component loads
   useEffect(() => {
     const fetchAdvisorYear = async () => {
-      if (userData?.role === "Academic Advisor") {
-        try {
-          const token = localStorage.getItem("teacher-token");
-          // Use a dedicated API endpoint to just get the advisor's year
-          const response = await axios.get(
-            `${import.meta.env.VITE_BASE_URL}/reports/advisor-year`,
-            {
-              headers: {
-                Authorization: `Bearer ${token}`,
-              },
-            }
-          );
-          
-          if (response.data.success && response.data.year) {
-            // Set the year filter to the advisor's year
-            setYearFilter(response.data.year.toString());
-            setAdvisorYear(response.data.year);
-          }
-        } catch (error) {
-          console.error("Error fetching advisor's year:", error);
+      if (userData?.role !== 'Academic Advisor' || authContext !== 'teacher') {
+        return;
+      }
+
+      try {
+        const authAxios = createAuthAxios();
+        if (!authAxios) {
+          return;
+        }
+
+        const response = await authAxios.get('/reports/advisor-year');
+        
+        if (response.data.success && response.data.year) {
+          setYearFilter(response.data.year.toString());
+          setAdvisorYear(response.data.year);
+        }
+      } catch (error) {
+        console.error("Error fetching advisor's year:", error);
+        if (error.response?.status === 401) {
+          navigate('/teacher-login');
+        } else {
           toast.error("Failed to determine your assigned year");
         }
       }
     };
     
     fetchAdvisorYear();
-  }, [userData]);
+  }, [userData, authContext, createAuthAxios, navigate]);
 
   // Add useEffect to detect advisor year from available classes
   useEffect(() => {

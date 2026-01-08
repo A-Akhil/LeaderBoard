@@ -18,10 +18,12 @@ const ReportsDownloadSection = ({ fetchFromApi, yearFilter, departmentFilter }) 
     try {
       setLoading(prev => ({ ...prev, [reportType]: true }));
       
-      // Create authenticated axios instance
-      const token = localStorage.getItem("teacher-token"); // Changed from "token" to "teacher-token"
+      // Create authenticated axios instance (supports teacher or admin tokens)
+      const teacherToken = localStorage.getItem('teacher-token');
+      const adminToken = localStorage.getItem('admin-token');
+      const token = teacherToken || adminToken;
       if (!token) {
-        throw new Error("Authentication token missing");
+        throw new Error('Authentication token missing');
       }
       
       // Prepare query parameters

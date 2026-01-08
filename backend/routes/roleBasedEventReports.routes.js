@@ -4,8 +4,8 @@ const authMiddleware = require('../middlewares/auth.middlewares');
 
 const router = express.Router();
 
-// Basic teacher authentication for all routes
-router.use(authMiddleware.authTeacher);
+// Allow both teachers and admins (proxied as report viewers)
+router.use(authMiddleware.authReportsUser);
 
 // Routes for everyone (faculty, advisor, HOD)
 router.get('/available-classes', RoleBasedEventReportsController.getAvailableClasses);
@@ -15,7 +15,7 @@ router.get('/class-performance', RoleBasedEventReportsController.getClassPerform
 router.get('/popular-categories', RoleBasedEventReportsController.getPopularCategories);
 router.get('/approval-rates', RoleBasedEventReportsController.getApprovalRates);
 router.get('/trends', RoleBasedEventReportsController.getTrends);
-router.get('/advisor-year', authMiddleware.authTeacher, RoleBasedEventReportsController.getAdvisorYear);
+router.get('/advisor-year', RoleBasedEventReportsController.getAdvisorYear);
 // Administrative roles (HOD, Associate Chairperson, Chairperson) routes
 router.get('/prize-money-by-class', 
   (req, res, next) => {

@@ -76,6 +76,61 @@ module.exports.authTeacher = async (req, res, next) => {
 } 
 
 
+module.exports.authReportsUser = async (req, res, next) => {
+    try {
+        let token;
+        if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+            token = req.headers.authorization.split(' ')[1];
+        } else if (req.cookies && req.cookies.token) {
+            token = req.cookies.token;
+        }
+
+        if (!token) {
+            return res.status(401).json({ message: 'Unauthorized: Token missing' });
+        }
+
+        const isBlacklisted = await blackListTokenModel.findOne({ token });
+        if (isBlacklisted) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const teacher = await teacherModel.findById(decoded._id);
+        if (teacher) {
+            req.teacher = teacher;
+            return next();
+        }
+
+        const admin = await adminModel.findById(decoded._id);
+        if (admin) {
+            const proxyRole = admin.role === 'Super Admin' ? 'Chairperson' : 'HOD';
+            const department = admin.role === 'Department Admin' ? admin.department : null;
+            const managedDepartments = admin.role === 'Super Admin' ? [] : (department ? [department] : []);
+
+            req.admin = admin;
+            req.teacher = {
+                _id: admin._id,
+                role: proxyRole,
+                department,
+                managedDepartments,
+                classes: [],
+                name: admin.name,
+                email: admin.email,
+                isAdminProxy: true
+            };
+
+            return next();
+        }
+
+        return res.status(401).json({ message: 'Unauthorized' });
+    } catch (error) {
+        console.error('authReportsUser error:', error);
+        return res.status(401).json({ message: 'Unauthorized' });
+    }
+};
+
+
 exports.authAdmin = async (req, res, next) => {
     try {
       // Get token from header

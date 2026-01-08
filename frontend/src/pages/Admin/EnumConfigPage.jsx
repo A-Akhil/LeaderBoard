@@ -8,7 +8,12 @@ import {
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { X, PlusCircle, Check, AlertTriangle } from 'lucide-react';
 
-const EnumConfigPage = () => {
+const EnumConfigPage = ({
+  allowedTypes,
+  defaultType,
+  title = 'Manage Enumerations',
+  description
+}) => {
   const [enumTypes, setEnumTypes] = useState([]);
   const [selectedType, setSelectedType] = useState('');
   const [enumValues, setEnumValues] = useState([]);
@@ -17,12 +22,10 @@ const EnumConfigPage = () => {
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(null);
 
-  useEffect(() => {
-    fetchEnumTypes();
-  }, []);
-
-  const fetchEnumTypes = async () => {
+  const fetchEnumValues = async (type) => {
     setIsLoading(true);
+    setError(null);
+
     try {
       const token = localStorage.getItem("admin-token");
       if (!token) {
@@ -30,39 +33,6 @@ const EnumConfigPage = () => {
         return;
       }
 
-      const response = await axios.get(
-        `${import.meta.env.VITE_BASE_URL}/admin/config`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-
-      if (response.data.success) {
-        setEnumTypes(response.data.data);
-      } else {
-        setError('Failed to fetch enum types');
-      }
-    } catch (err) {
-      setError(err.response?.data?.message || 'Network error');
-      toast.error('Failed to load configurations');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handleTypeChange = async (e) => {
-    const type = e.target.value;
-    setSelectedType(type);
-    setEnumValues([]);
-    
-    if (!type) return;
-    
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem("admin-token");
       const response = await axios.get(
         `${import.meta.env.VITE_BASE_URL}/admin/config/type/${type}`,
         {
@@ -83,6 +53,87 @@ const EnumConfigPage = () => {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const selectType = async (type) => {
+    setSelectedType(type);
+    setEnumValues([]);
+    setNewValue('');
+    setError(null);
+    setSuccess(null);
+
+    if (!type) {
+      return;
+    }
+
+    await fetchEnumValues(type);
+  };
+
+  const fetchEnumTypes = async () => {
+    setIsLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+      const token = localStorage.getItem("admin-token");
+      if (!token) {
+        toast.error('Authentication required');
+        return;
+      }
+
+      const response = await axios.get(
+        `${import.meta.env.VITE_BASE_URL}/admin/config`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      );
+
+      if (response.data.success) {
+        let configs = response.data.data || [];
+
+        if (Array.isArray(allowedTypes) && allowedTypes.length > 0) {
+          configs = configs.filter((enumConfig) => allowedTypes.includes(enumConfig.type));
+        }
+
+        setEnumTypes(configs);
+
+        if (configs.length === 0) {
+          setSelectedType('');
+          setEnumValues([]);
+          setNewValue('');
+          return;
+        }
+
+        if (defaultType && configs.some((enumConfig) => enumConfig.type === defaultType)) {
+          await selectType(defaultType);
+        } else if (!defaultType && configs.length === 1) {
+          await selectType(configs[0].type);
+        } else {
+          setSelectedType('');
+          setEnumValues([]);
+          setNewValue('');
+        }
+      } else {
+        setError('Failed to fetch enum types');
+      }
+    } catch (err) {
+      setError(err.response?.data?.message || 'Network error');
+      toast.error('Failed to load configurations');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchEnumTypes();
+  }, []);
+
+  const handleTypeChange = (event) => {
+    const { value } = event.target;
+    selectType(value);
   };
 
   const handleAddValue = () => {
@@ -148,8 +199,14 @@ const EnumConfigPage = () => {
 
   return (
     <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold mb-6">Manage Category Enums</h2>
-      
+      <h2 className="text-xl font-semibold mb-4">{title}</h2>
+
+      {description && (
+        <Alert severity="info" className="mb-4">
+          {description}
+        </Alert>
+      )}
+
       {error && (
         <Alert severity="error" className="mb-4" onClose={() => setError(null)}>
           {error}
