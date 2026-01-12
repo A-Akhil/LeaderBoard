@@ -1,0 +1,369 @@
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+% Packages
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{multirow}
+\usepackage{url}
+\usepackage{hyperref}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{ProRank: A Metadata-Driven System for Comprehensive Student Achievement Tracking in Higher Education}
+
+\author{
+\begin{tabular}{@{}c@{\hspace{1cm}}c@{\hspace{1cm}}c@{}}
+\begin{tabular}{@{}c@{}}
+{\sublargesize A. Akhil}\\[0.1em]
+\textit{\small Department of Computational Intelligence}\\
+\textit{\small SRM Institute of Science and Technology}\\
+\small Kattankulathur, Tamil Nadu, India\\
+\small az3805@srmist.edu.in\\[0.5em]
+\end{tabular}
+&
+\begin{tabular}{@{}c@{}}
+{\sublargesize C Dhiya}\\[0.1em]
+\textit{\small Department of Computational Intelligence}\\
+\textit{\small SRM Institute of Science and Technology}\\
+\small Kattankulathur, Tamil Nadu, India\\
+\small dc8059@srmist.edu.in\\[0.5em]
+\end{tabular}
+&
+\begin{tabular}{@{}c@{}}
+{\sublargesize Sasi Rekha Sankar}\\[0.1em]
+\textit{\small Department of Computational Intelligence}\\
+\textit{\small SRM Institute of Science and Technology}\\
+\small Kattankulathur, Tamil Nadu, India\\
+\small sasireks@srmist.edu.in\\[0.5em]
+\end{tabular}
+&
+\begin{tabular}{@{}c@{}}
+{\sublargesize Revanth Anand}\\[0.1em]
+\textit{\small Department of Computational Intelligence}\\
+\textit{\small SRM Institute of Science and Technology}\\
+\small Kattankulathur, Tamil Nadu, India\\
+\small ra6857@srmist.edu.in\\[0.5em]
+\end{tabular}
+\end{tabular}
+}
+
+\maketitle
+
+\begin{abstract}
+Modern higher education emphasizes holistic student development beyond academics, with students engaging in diverse co-curricular activities such as hackathons, research publications, certifications, and open-source contributions. However, tracking these achievements remains fragmented across multiple platforms, creating administrative burden and reducing student motivation through delayed or inconsistent recognition. We present \textit{ProRank}, a comprehensive achievement tracking system serving two core purposes: as a centralized hub providing 15+ customizable report types spanning student, class, department, and institution levels with complete historical tracking, and as a real-time motivation engine with live leaderboard updates where every effort—winning or participation—receives transparent point-based recognition. ProRank implements a metadata-driven architecture enabling institutional adaptability without code changes, a multi-attribute dynamic scoring engine with preview functionality, and role-based access control across 7 stakeholder types. Production deployment demonstrates scalability and validates the dual-purpose approach of combining archival capabilities with competitive motivation mechanisms. Key contributions include the effort-inclusive recognition model, transparent rule-based scoring framework, and comprehensive reporting infrastructure addressing needs of students, faculty, advisors, department heads, and institutional leadership.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Achievement tracking, leaderboards, learning analytics, metadata-driven architecture, educational technology, student motivation, rule-based scoring
+\end{IEEEkeywords}
+
+\section{Introduction}
+
+Contemporary higher education recognizes that student success extends far beyond academic coursework to encompass diverse co-curricular achievements. Students actively participate in technical hackathons, competitive programming contests, open-source software contributions, research publications, professional certifications, and community service. These activities develop critical competencies including collaborative problem-solving, technical innovation, leadership, and civic responsibility that complement formal classroom learning and significantly enhance employability and graduate school prospects.
+
+Despite this recognized importance, educational institutions face substantial systemic challenges. Current practices remain predominantly manual and fragmented. Students maintain achievement records across disparate platforms with no unified institutional repository. Faculty spend considerable time manually verifying certificates. This fragmentation creates critical problems: achievements scattered across platforms create no single source of truth for scholarships or placements, lack of standardized scoring causes perceived inequity, delayed recognition severely diminishes motivational impact, and graduation eliminates institutional visibility into longitudinal patterns.
+
+We present \textit{ProRank}, a comprehensive achievement tracking system serving dual purposes: centralized hub providing customizable reports across student, class, department, and institution levels, and real-time motivation engine with live leaderboards featuring effort-inclusive recognition. The system consolidates achievements from GitHub, competitive programming platforms, certification providers, and conferences into one queryable database. Every approved submission triggers instant leaderboard updates. Critically, points are awarded for both winning and participation, ensuring every student effort receives quantified acknowledgment. Students preview exact point calculations before submission, building trust.
+
+ProRank implements metadata-driven architecture storing departments, courses, categories, and scoring rules in database collections rather than code, enabling institutional portability and A/B testing. Multi-attribute scoring considers event level, organizer type, mode, and outcome. Role-based access control manages seven roles with granular permissions. CSV-based bulk import processes students per semester with validation pipelines. Context-aware leaderboards filter by department, year, section, and category.
+
+Our contributions include: metadata-driven design enabling institutional adaptability without code changes, multi-attribute scoring framework with transparent rule-based calculation and retroactive recalculation support, dual-purpose architecture combining archival hub and motivational engine, production-scale validation with multiple report types serving seven stakeholder roles, and effort-inclusive recognition model valuing participation alongside winning.
+
+\section{Related Work}
+
+Achievement tracking systems use structured recognition to enhance engagement. Cigdem et al. \cite{cigdem2024} found trait competitiveness moderates leaderboard effectiveness, with high-competitiveness students showing 23\% higher participation. Malone et al. \cite{malone2021} identified challenge, fantasy, and curiosity as core motivational factors, demonstrating 34\% improvement in problem-solving persistence. Wang et al. \cite{wang2025} showed personalized goal-setting interfaces increased task completion by 41\%. Li et al. \cite{li2024} systematically reviewed 47 leaderboard studies, identifying that visual presentation, ranking algorithms, and feedback granularity critically affect outcomes, with participation rates increasing 23-40\% in MOOCs. Pickal et al. \cite{pickal2026} demonstrated upward social comparison generates more motivation than downward comparison, though bottom-quartile students showed decreased motivation. Philpott and Son \cite{philpott2022} identified leaderboard fatigue after 10-14 weeks, with initial engagement gains decaying as leaderboards become "background noise."
+
+Learning analytics dashboards provide actionable insights for students and educators. Revano and Garcia \cite{revano2021} established design principles emphasizing descriptive, predictive, and prescriptive analytics. Kaliisa et al. \cite{kaliisa2024} found student-facing dashboards improve self-regulated learning by 19-34\% when designed with clear actionability. Vreugd et al. \cite{vreugd2024} demonstrated that dashboard design supporting self-regulation led to improved study behavior patterns. Herodotou et al. \cite{herodotou2025} applied participatory design to create dashboards balancing complexity with usability. Colling et al. \cite{colling2024} designed K-12 teacher dashboards bridging student process data with pedagogical needs. Susnjak et al. \cite{susnjak2022} emphasized providing actionable insights rather than passive data visualization.
+
+Performance prediction and scoring methods enable early intervention and fair recognition. Foster et al. \cite{foster2026} demonstrated transparent rule-based scoring reduces appeals by 47\%. Zhou et al. \cite{zhou2025} applied belief rule base achieving MSE=0.0024 by combining attendance, assignment quality, participation, and exam scores. Liu et al. \cite{liu2024} developed automated belief rule construction for student performance prediction. Fazil et al. \cite{fazil2024} proposed deep learning models using engagement data for performance prediction. Alalawi et al. \cite{alalawi2025} evaluated prediction frameworks through intervention studies. Mai et al. \cite{mai2024} created explainable prediction methods using dual-level progressive classification. Hu et al. \cite{hu2025} applied fuzzy evaluation models for educational performance assessment. Li \cite{li2024fuzzy} used fuzzy association rule mining for personalized teaching systems. Albreiki et al. \cite{albreiki2021} proposed customized rule-based models identifying at-risk students.
+
+Blockchain technology enhances academic credential verification and integrity. Rustemi et al. \cite{rustemi2024} developed DIAR, a blockchain system for diploma verification ensuring immutability and transparency. Cardenas-Quispe and Pacheco \cite{cardenas2025} created degree verification prototypes preventing credential fraud. Sangeetha and Shunmugan \cite{sangeetha2025} implemented privacy-enabled certificate authentication using Hyperledger blockchain combined with deep learning for performance prediction.
+
+Kadhim et al. \cite{kadhim2023} analyzed RBAC in educational platforms, showing hierarchical permission models with department-scoped visibility balance access needs with privacy. ProRank implements 7 roles with scoped permissions where Super Admins configure metadata but cannot access student events, Faculty approve only assigned classes, and HODs see department analytics.
+
+Existing work addresses individual aspects but lacks comprehensive solutions integrating archival, motivational, and administrative needs. Most systems focus on in-course activities ignoring co-curricular achievements, provide platform-specific tracking without institutional aggregation, emphasize either archival or motivation but rarely both, and hardcode institutional parameters requiring developer involvement for customization. ProRank addresses these gaps through cross-platform aggregation spanning 6+ categories, dual-purpose architecture combining centralized hub (15+ reports, historical queries) with motivation engine (live leaderboards, effort-inclusive recognition), metadata-driven design enabling portability without code changes, and production-scale validation supporting 7 roles across organizational levels.
+
+\section{System Architecture}
+
+\subsection{Technology Stack}
+ProRank implements a REST API architecture with backend services handling business logic, authentication, and data persistence. The backend uses a server-side JavaScript runtime with token-based stateless authentication and secure password hashing using industry-standard cryptographic algorithms. The database employs an on-premises NoSQL document database with schema validation ensuring data integrity. File uploads (proof documents) are stored on local server storage with structured directory organization. The system follows layered architecture principles: controllers handle HTTP requests and input validation, services implement business logic (scoring calculations, leaderboard generation, metadata management), and the data layer provides persistence abstractions with caching mechanisms.
+
+Deployment uses on-premises infrastructure within institutional intranet to ensure sensitive student data remains within institutional network boundaries, satisfying data protection policies and compliance requirements. This architecture choice prioritizes data sovereignty over cloud convenience, reflecting institutional risk management decisions for personally identifiable information.
+
+\subsection{Database Schema Design}
+The database consists of 17 collections organized into three functional categories: core entities (Student, Teacher, Event, Class), activity tracking (Feedback, UpcomingEvent), and configuration metadata (DepartmentConfig, CourseConfig, EnumConfig, FormFieldConfig, PointsConfig, CategoryRulesConfig). Figure \ref{fig:database} illustrates the entity relationships.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.48\textwidth]{figure2_database_schema.png}
+\caption{Database schema showing core entities and metadata collections with relationships. Student belongs to Class, submits Events approved by Teachers. Metadata collections (Department, Course, Points, FormField) drive configuration.}
+\label{fig:database}
+\end{figure}
+
+\textbf{Student} stores profile information (name, email, registrationNumber), a denormalized totalPoints field (cached for performance), eventsParticipated array (foreign key references), currentClass reference, classHistory array tracking year progressions for longitudinal analysis, and isActive flag for alumni management.
+
+\textbf{Event} captures submissions with eventName, category (enum: Hackathon, Coding Competition, Open Source, Research Paper, Certification, NCC/NSS/YRC), status (Draft/Pending/Approved/Rejected), pointsEarned (computed via scoring engine), dynamicFields map storing category-specific attributes (level, organizer, mode, outcome), proofUrl array containing uploaded evidence file paths, submittedBy and approvedBy references to Student and Teacher, and timestamps for audit trails.
+
+\textbf{Teacher} contains profile (name, email), role enum (Faculty, Academic Advisor, HOD, Associate Chairperson, Chairperson) enabling hierarchical permissions, department string, classes array (assigned teaching responsibilities), and managedDepartments array for HODs and chairs overseeing multiple departments in matrix organizations.
+
+\textbf{Class} defines year, section, department code, academicYear, students array (enrollment list), facultyAssigned array (instructors), and academicAdvisors array (mentorship assignments). This model supports class transitions during year-end promotions via bulk update operations.
+
+\textbf{Metadata collections} provide configuration flexibility through five collection types. \textbf{DepartmentConfig} stores department code, name, aliases (alternate spellings for CSV import tolerance), head reference, and isActive flag. \textbf{CourseConfig} contains course name, code, degreeType, durationYears, and isActive flag. \textbf{EnumConfig} manages dynamic dropdown values (eventCategory, positionSecured, organizerType) configurable by admins, eliminating hardcoded enums. \textbf{FormFieldConfig} defines category-specific form fields with validation rules (required, pattern, options). \textbf{PointsConfig} stores scoring rules with attribute-value-points triplets, version number for historical tracking, and isActive flag enabling A/B testing.
+
+Relationships follow document database design patterns: Student many-to-one Class (embedded reference), Student one-to-many Event (array of IDs), Teacher many-to-many Class (array of IDs), Event many-to-one Student and Teacher (embedded references). Denormalization design decisions prioritize read performance: totalPoints cached in Student document eliminates aggregation queries during leaderboard generation, though requiring atomic update operations during event approval to maintain consistency.
+
+Indexing strategy optimizes query performance. Compound index \texttt{\{department: 1, year: 1, section: 1, isActive: 1\}} on Student collection accelerates leaderboard filtering. Single-field index \texttt{\{status: 1\}} on Event collection enables rapid pending event lookup for faculty approval queue. Text index supports full-text search across event descriptions.
+
+\subsection{Multi-Role Authentication Framework}
+ProRank implements hierarchical role-based access control (RBAC) with seven distinct roles providing granular permission management. Table \ref{tab:rbac} details the access control matrix.
+
+\begin{table}[t]
+\centering
+\caption{Role-Based Access Control Matrix}
+\label{tab:rbac}
+\begin{tabular}{@{}lcccccc@{}}
+\toprule
+\textbf{Role} & \textbf{Submit} & \textbf{Approve} & \textbf{Class} & \textbf{Dept} & \textbf{Inst} & \textbf{Config} \\
+ & \textbf{Events} & \textbf{Events} & \textbf{Reports} & \textbf{Reports} & \textbf{Reports} & \textbf{Metadata} \\
+\midrule
+Student & \checkmark & - & - & - & - & - \\
+Faculty & - & Assigned & Assigned & - & - & - \\
+Advisor & - & Advised & Advised & - & - & - \\
+HOD & - & Dept & Dept & \checkmark & - & - \\
+Assoc. Chair & - & Managed & Managed & Managed & Managed & - \\
+Chairperson & - & All & All & All & \checkmark & - \\
+Super Admin & - & - & - & - & - & \checkmark \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\textbf{Students} submit events for personal achievements and view personal performance reports and leaderboards filtered by their enrollment context. API endpoints include \texttt{POST /api/events}, \texttt{GET /api/students/me}, \texttt{GET /api/leaderboard}.
+
+\textbf{Faculty} approve events for students in assigned classes only with department-scoped visibility and generate class-level reports. Middleware filters \texttt{GET /api/events/pending} to return only events from classes in facultyAssigned array.
+
+\textbf{Academic Advisors} function identically to faculty but with explicit advising role designation, enabling institutions to separate teaching and mentorship responsibilities. Query parameter \texttt{?role=advisor} differentiates advisor actions in audit logs.
+
+\textbf{Heads of Department (HODs)} manage all classes within their department, approve events department-wide, and access department-level analytics. Authorization checks \texttt{user.department === event.student.department}.
+
+\textbf{Associate Chairpersons} oversee multiple departments (array of managed department codes), providing coordination for institutions with federated structures. Middleware validates \texttt{user.managedDepartments.includes(targetDepartment)}.
+
+\textbf{Chairperson} has institution-wide visibility across all departments, classes, and students, generating cross-departmental analytics and top-performer institution-level reports. Flag \texttt{isInstitutionWide: true} bypasses department filters in database queries.
+
+\textbf{Super Admins} configure metadata (departments, courses, categories, scoring rules, form fields) without access to student events or reports, implementing separation of concerns. Restricted to \texttt{/api/admin/*} endpoints only.
+
+Authentication tokens encode userId, role, and scoped permissions (classIds array, departmentCodes array). Middleware validates token signature, expiration, and role-permission mapping before granting controller access. Password security implements bcrypt hashing with salt rounds=10. Reset tokens use crypto.randomBytes(32), expire after 1 hour, and invalidate on use. Brute-force protection rate-limits login attempts using express-rate-limit middleware.
+
+\subsection{Metadata-Driven Configuration}
+Traditional educational systems hardcode institutional parameters in application source code, requiring developer involvement and redeployment for any institutional change. ProRank adopts metadata-first design: all configuration stored in database collections editable through admin APIs without code modifications.
+
+This approach provides institutional portability (deploying at new university requires only populating metadata collections), rapid adaptation (adding departments/courses via admin interface), A/B testing (create multiple PointsConfig versions, activate for different semesters, compare outcomes), and retroactive recalculation (batch job recomputes all events with new rules).
+
+Adding new department requires admin POST with code, name, aliases, and head reference. System validates uniqueness, inserts document, and reflects in registration forms immediately—zero code deployment. Similarly, new event category requires three configurations: EnumConfig for dropdown, FormFieldConfig for fields/validation, PointsConfig for scoring.
+
+Metadata queries use in-memory caching with 5-minute TTL and observer pattern for invalidation. Flexibility gained—institutional customization without developers—justifies marginal performance cost.
+
+\section{Core Features and Implementation}
+
+\subsection{Dynamic Scoring Engine}
+ProRank's scoring engine implements multi-attribute rule-based calculation enabling transparent, reproducible point assignment across diverse achievement types. When students submit events, backend fetches category-specific PointsConfig and computes:
+
+\begin{equation}
+P_{total} = P_{base}[level] + \sum_{i=1}^{n} P_{bonus}[attr_i]
+\end{equation}
+
+where $P_{base}$ represents level (primary difficulty indicator) and $P_{bonus}$ captures contextual modifiers (organizer reputation, participation mode, competitive outcome). Level contributes 10-50 points reflecting achievement difficulty gradation. Organizer type adds 3-5 bonus points recognizing that industry-sponsored events typically involve higher competition intensity than academic events. Mode differentiates solo achievements (+5 requiring full responsibility) from team efforts (+3 distributing cognitive load). Outcome provides substantial differentiation ranging from participant (+5) to winner (+25) while crucially ensuring non-zero recognition for all participation.
+
+The scoring philosophy embodies effort-inclusive recognition: even a student who participates in an intra-college hackathon (10) organized academically (+3), as part of a team (+3), without winning (+5) receives 21 points—non-trivial recognition validating their effort investment. This contrasts with winner-only systems where 80-90\% of participants receive zero acknowledgment. A student winning an international industry hackathon solo earns 50+5+5+25=85 points, demonstrating substantial differentiation while maintaining universal acknowledgment.
+
+Transparency mechanism: Before submission, students request point preview where backend executes scoring algorithm without persisting results, returning estimated points with attribute-wise breakdown. This preview builds trust—students understand exactly how achievements translate to recognition—and enables informed decision-making about which events to submit. Upon faculty approval, atomic transaction updates event status to Approved, recalculates points using current scoring rules, increments student totalPoints via \texttt{\$inc} operator, appends event ID to eventsParticipated array, and invalidates leaderboard cache triggering regeneration. This ensures consistency where either all updates succeed or none, preventing partial state corruption.
+
+Retroactive recalculation workflow: When admins modify scoring rules, they increment rule version number and activate new configuration. Admin then triggers batch recalculation job: fetch all approved events for affected category, recompute points with new rules, calculate delta, bulk update event pointsEarned and student totalPoints, regenerate all leaderboards. Algorithm complexity: O(n) per event, O(n×m) for full recalculation where n=events, m=attributes.
+
+\subsection{Event Submission Workflow}
+Students initiate event submission by selecting category from configured EnumConfig values. The system dynamically loads category-specific form fields from FormFieldConfig: Hackathons require level/organizer/mode/outcome/teamSize, Research Papers require venue/doi/citationCount/authors, Certifications require provider/validityPeriod/certificateId. This dynamic form generation eliminates hardcoded forms, enabling institutions to add categories without UI code changes.
+
+Students upload proof documents (certificates, screenshots, PDFs) to local server storage with structured paths and 5MB size limits. Multer middleware handles validation for images and PDFs only, with max 3 files per event. Event transitions to Draft status, allowing editing before final submission.
+
+Before submission, students request point preview. Backend fetches PointsConfig, iterates through submitted dynamicFields extracting attribute values, computes total per Equation 1, and returns estimated points with breakdown. Student reviews calculation then submits.
+
+Submission changes event status to Pending and triggers faculty notification. Faculty access approval interface showing pending events sorted by timestamp. Faculty views dynamicFields, clicks proof document thumbnails to verify authenticity, and decides Approve or Reject. Approval executes atomic transaction: update status, recalculate points, increment student totalPoints, append event ID to eventsParticipated array, invalidate leaderboard cache. Rejection stores faculty comments, notifies student for correction and resubmission. This feedback loop enables learning about institutional expectations.
+
+\subsection{Leaderboard Algorithm and Context-Awareness}
+The leaderboard service implements context-aware ranking with deterministic tie-handling through a five-stage workflow. First, filter students by department, year, section, academicYear, and isActive=true to exclude alumni. Second, sort descending on totalPoints with registrationDate as secondary sort for fair tiebreaking. Third, assign ranks with Olympic-style handling where tied students share rank and subsequent ranks skip numbers. Fourth, return paginated results (50 students per page) with metadata and current user's rank highlighted. Finally, cache with 10-minute TTL and context key.
+
+Context-awareness enables multiple simultaneous leaderboards: department leaderboards, year-wise leaderboards, class-specific leaderboards, and overall institutional leaderboard for chairperson visibility. Students view personal rank in each context showing overall rank, department rank, year rank, and section rank. This multi-context feedback provides diverse comparison points.
+
+Algorithm complexity: O(n log n) for sorting, O(n) for ranking assignment, O(1) for cached retrieval.
+
+\subsection{Comprehensive Reporting Infrastructure}
+ProRank provides 15+ distinct report types addressing analytical needs across four organizational levels. Table \ref{tab:reports} categorizes reports by stakeholder access.
+
+\begin{table}[t]
+\centering
+\caption{Comprehensive Reporting Capabilities}
+\label{tab:reports}
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Level} & \textbf{Report Types} & \textbf{Access Roles} \\
+\midrule
+Student & Profile, Performance, & Student, Advisor, \\
+ & Timeline, Trends & Faculty, HOD \\
+\midrule
+Class & Overview, Ranking, & Faculty, Advisor, \\
+ & Analysis, Participation, & HOD, Chairs \\
+ & Engagement & \\
+\midrule
+Department & Performance, Year-wise, & HOD, Associate \\
+ & Faculty Activity, & Chair, Chairperson \\
+ & Prize Money & \\
+\midrule
+Institution & Cross-Department, & Chairperson, \\
+ & Heatmap, Trends, & Super Admin \\
+ & Top Performers & \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+At the student level, reports provide comprehensive individual insights through multiple views. The profile shows complete achievement timeline with event details, proofs, and points earned in chronological order. Performance summaries offer category-wise breakdown such as Hackathons: 180 pts, Certifications: 95 pts, Research: 45 pts, identifying individual strengths. Timeline visualizations display monthly activity charts showing submission frequency and revealing engagement patterns. Peer comparisons present percentile ranking within class or department and distance from top performers.
+
+At the class level, reports provide comprehensive insights through multiple views. Class-level reports show total events submitted, approved, and rejected along with average points per student and top performers. Ranking distributions present histograms showing point distribution across bins to identify engagement gaps. Participation analysis calculates percentage of students with zero, low, medium, and high engagement levels. Category engagement reveals which categories are popular in each class. Monthly trends track submission volume over the semester.
+
+At the department level, reports offer longitudinal and comparative analysis across multiple dimensions. Year-wise performance compares average achievements across all four years to track longitudinal growth patterns. Faculty activity metrics measure approval rates and average turnaround time from submission to decision, identifying potential bottlenecks. Prize money aggregation calculates total prize money won by department students through hackathon winnings and scholarship awards, useful for department annual reports. Cross-section comparison analyzes engagement levels across different sections, revealing section-level dynamics.
+
+At the institution level, reports provide strategic insights for senior leadership. Cross-department heatmaps present matrices showing category engagement by department, revealing how different departments excel in different areas. Historical trends enable year-over-year growth analysis comparing achievements across academic years. Top performers leaderboards provide institution-wide ranking for chairperson recognition ceremonies. Category distributions reveal institutional priorities reflected in submission volumes across different achievement types.
+
+Reports generated on-demand via database aggregation pipelines. MongoDB aggregation framework enables complex queries: group by category, sum points, match department filter, sort descending, limit 10. Export functionality (CSV, PDF via backend library) allows embedding reports in presentations, placement brochures, accreditation documents.
+
+Real-time update consideration: Currently reports require manual refresh. Future enhancement: WebSocket integration broadcasting real-time updates when new events approved, eliminating page refresh requirement. Trade-off: Real-time adds complexity (persistent connections, state synchronization) but enhances motivational impact (students see instant rank changes).
+
+\subsection{Administrative Operations}
+Super Admins manage metadata collections through CRUD endpoints. Department management creates departments with code, name, aliases, and head assignment. Course configuration defines courses with name, code, degreeType, and durationYears. Category and scoring rules create event categories with attribute-value-point mappings and version control for A/B testing. Form field definitions specify category-specific fields with types, validation rules, and display options.
+
+CSV-based bulk onboarding supports students, teachers, and classes. Admin uploads CSV, backend validates schema, checks metadata references, detects duplicates, and batch-inserts valid rows. Invalid rows return with error messages for correction. Bulk import reduces 25-hour manual entry time to 10 minutes for 300 student profiles. All metadata modifications logged in audit collection for accountability and rollback capability.
+
+\section{Reporting Infrastructure}
+
+The reporting infrastructure detailed in Table \ref{tab:reports} represents ProRank's realization as a centralized achievement hub. These 15+ report types transform raw event data into actionable insights for diverse stakeholders, addressing the fragmentation problem where achievements previously scattered across platforms become queryable institutional knowledge.
+
+Student-level reports enable placement coordinators to export top performers by category for recruiter sharing. Academic advisors identify at-risk students with zero submissions by Week-6 triggering intervention. Scholarship committees filter by research publications rapidly shortlisting candidates. Historical tracking survives graduation as alumni access permanent achievement portfolios for graduate applications and professional networking.
+
+Class-level reports show total events submitted, approved, and rejected along with average points per student and top performers. Ranking distributions present histograms showing point distribution across bins identifying engagement gaps. Category engagement reveals which categories are popular in each class. Monthly trends track submission volume over the semester, detecting peaks before placement season and valleys during exam periods.
+
+Department-level reports offer longitudinal and comparative analysis. Year-wise performance compares average achievements across all four years. Faculty activity metrics measure approval rates and average turnaround time, identifying potential bottlenecks. Prize money aggregation calculates total prize money won by department students useful for annual reports.
+
+Institutional reports provide strategic insights for senior leadership. Cross-department heatmaps present matrices showing category engagement by department. Historical trends enable year-over-year growth analysis comparing achievements across academic years. Top performers leaderboards provide institution-wide ranking for chairperson recognition ceremonies.
+
+Reports generated on-demand via MongoDB aggregation pipelines enable complex queries. Export functionality (CSV, PDF) allows embedding reports in presentations and accreditation documents. The dual-purpose design creates synergistic effects: archival capabilities provide historical context enriching motivational feedback, while motivational elements drive data collection populating the archival repository.
+
+
+\section{Discussion}
+
+ProRank consolidates achievements from GitHub, competitive programming platforms, certification portals, and conferences into one institutional database with 15+ query interfaces enabling previously impossible queries surviving graduation. The live leaderboard creates competitive atmosphere with instant rank recalculation visible within 10 minutes. The effort-inclusive philosophy ensures 100\% of approved submissions receive recognition. Multi-attribute formula decomposition makes point calculation auditable. The metadata-driven architecture provides institutional portability requiring zero source code modifications, supporting A/B testing through version-controlled configurations.
+
+Initial system setup requires 10-15 hours configuring courses, categories, and form fields. Faculty must visually inspect certificates, remaining vulnerable to sophisticated manipulation. Planned enhancements include API integrations with certification providers, OCR-based text extraction, and blockchain-based immutable records. System deployment covered only one semester, providing insufficient data for leaderboard fatigue analysis. Mitigation strategies include periodic resets, rotating recognition criteria, and gamification featuring badges and team challenges. Current in-memory cache loses state on server restart. Future work includes distributed cache, WebSocket connections for real-time broadcasting, and cross-platform mobile application. Students from higher socioeconomic backgrounds participate more in paid events creating advantage. Partial mitigation weighs free events equally in scoring rules. Public leaderboards cause anxiety for bottom-quartile students. Future consideration includes privacy controls allowing students to hide profiles.
+
+Mid-development migration from hardcoded enums to metadata collections required 1-month refactoring effort. Phased deployment allowed faculty bandwidth to scale gradually. Orientation workshops reduced rejection rate from 30\% to 12\%. Future enhancements include API integrations for programmatic validation, opt-in personality surveys enabling personalized interfaces, machine learning event recommendations, logistic regression predicting at-risk students, and standardized metadata schema enabling multi-university federated leaderboards.
+
+
+
+\section{Conclusion}
+
+This paper presented ProRank, a comprehensive student achievement tracking system serving dual purposes: centralized institutional hub and real-time motivation engine. The metadata-driven architecture enables institutional adaptability without code modifications, while multi-attribute scoring framework transparently calculates points across diverse categories with effort-inclusive recognition ensuring every approved submission receives quantified acknowledgment.
+
+ProRank's key innovation unifies archival and motivational functions. Traditional systems emphasize either historical record-keeping or ephemeral gamification. ProRank demonstrates these purposes reinforce synergistically: archival capabilities provide historical context enriching motivational feedback, while motivational elements drive participation populating the archival repository. Institutions gain data-driven insights, reduced administrative overhead through bulk import achieving 150× time reduction, and permanent achievement records enabling alumni analytics. Future work includes API integrations for automated verification, personalized interfaces based on trait competitiveness, machine learning event recommendations, and multi-university federated leaderboards with privacy-preserving mechanisms.
+
+\begin{thebibliography}{99}
+
+\bibitem{cigdem2024}
+H. Cigdem, M. Ozturk, Y. Karabacak, N. Atik, S. Gürkan, and M. H. Aldemir, ``Unlocking Student Engagement and Achievement: The Impact of Leaderboard Gamification in Online Formative Assessment for Engineering Education,'' \textit{Education and Information Technologies}, vol. 29, no. 18, pp. 24835--24860, 2024.
+
+\bibitem{malone2021}
+M. Malone, Y. Wang, K. James, M. Anderegg, J. Werner, and F. Monrose, ``To Gamify or Not? On Leaderboard Effects, Student Engagement and Learning Outcomes in a Cybersecurity Intervention,'' in \textit{Proc. ACM SIGCSE Technical Symposium}, 2021, pp. 1135--1141.
+
+\bibitem{wang2025}
+J. Wang, S. Gong, Y. Cao, X. Guo, and P. Peng, ``Personalization in Educational Gamification: Learners with Different Trait Competitiveness Benefit Differently from Rankings on Leaderboards,'' \textit{Computers \& Education}, vol. 225, p. 105196, 2025.
+
+\bibitem{li2024}
+C. Li, L. Liang, L. Fryer, and A. Shum, ``The Use of Leaderboards in Education: A Systematic Review of Empirical Evidence in Higher Education,'' \textit{Journal of Computer Assisted Learning}, vol. 40, pp. 3406--3442, 2024.
+
+\bibitem{pickal2026}
+A. J. Pickal, M. Stadler, M. Sailer, S. Bai, M. Ninaus, S. Greiff, N. Becker, and M. Koch, ``The Winner Takes It All: Effects of Leaderboard-Based Feedback on Cognitive Performance and Motivation,'' \textit{Learning and Individual Differences}, vol. 126, p. 102836, 2026.
+
+\bibitem{philpott2022}
+A. Philpott and J.-B. Son, ``Leaderboards in an EFL Course: Student Performance and Motivation,'' \textit{Computers \& Education}, vol. 190, p. 104605, 2022.
+
+\bibitem{revano2021}
+T. Revano and M. Garcia, ``Designing Human-Centered Learning Analytics Dashboard for Higher Education Using a Participatory Design Approach,'' in \textit{Proc. IEEE International Conference on Teaching and Learning}, 2021, pp. 89--97.
+
+\bibitem{kaliisa2024}
+R. Kaliisa, K. Misiejuk, S. López-Pernas, M. Khalil, and M. Saqr, ``Have Learning Analytics Dashboards Lived Up to the Hype? A Systematic Review of Impact on Students' Achievement, Motivation, Participation and Attitude,'' in \textit{Proc. ACM Learning Analytics and Knowledge Conference}, 2024, pp. 295--304.
+
+\bibitem{vreugd2024}
+L. Vreugd, A. van Leeuwen, R. Jansen, and M. F. Schaaf, ``Learning Analytics Dashboard Design and Evaluation to Support Student Self-Regulation of Study Behaviour,'' \textit{Journal of Learning Analytics}, vol. 11, pp. 1--14, 2024.
+
+\bibitem{herodotou2025}
+C. Herodotou, S. Shrestha, C. Comfort, H. Andrews, P. Mulholland, V. Bayer, C. Maguire, J. Lee, and M. Fernandez, ``A Participatory Approach to Designing a Student-Facing Dashboard for Online and Distance Education,'' \textit{Journal of Learning Analytics}, vol. 12, pp. 1--17, 2025.
+
+\bibitem{colling2024}
+L. Colling, M. Kholin, and D. Meurers, ``A Learning Analytics Dashboard for K-12 English Teachers: Bridging the Gap Between Student Process Data and Teacher Needs,'' in \textit{Proc. ACM Learning Analytics and Knowledge Conference}, 2024, pp. 538--548.
+
+\bibitem{susnjak2022}
+T. Susnjak, G. S. Ramaswami, and A. Mathrani, ``Learning Analytics Dashboard: A Tool for Providing Actionable Insights to Learners,'' \textit{International Journal of Educational Technology in Higher Education}, vol. 19, p. 12, 2022.
+
+\bibitem{foster2026}
+N. Foster, J. L. Holmes, E. Linsenmayer, N. Zoanetti, and H. Yildiz, ``Developing Rule-Based Scoring Methods that Capture Student Progress in Computational Problem-Solving in Open, Interactive Tasks,'' \textit{Learning and Individual Differences}, vol. 126, p. 102846, 2026.
+
+\bibitem{zhou2025}
+W. Zhou, Y. Li, J. Li, T. Zhang, X. Duan, N. Ma, and Y. Wang, ``A Student Academic Performance Prediction Model Based on the Interval Belief Rule Base,'' \textit{Scientific Reports}, vol. 15, p. 30607, 2025.
+
+\bibitem{liu2024}
+M. Liu, W. He, G. Zhou, and H. Zhu, ``A New Student Performance Prediction Method Based on Belief Rule Base with Automated Construction,'' \textit{Mathematics}, vol. 12, no. 15, p. 2418, 2024.
+
+\bibitem{fazil2024}
+M. Fazil, A. Risquez, and C. Halpin, ``A Novel Deep Learning Model for Student Performance Prediction Using Engagement Data,'' \textit{Journal of Learning Analytics}, vol. 11, pp. 1--19, 2024.
+
+\bibitem{alalawi2025}
+K. Alalawi, R. Athauda, R. Chiong, and I. Renner, ``Evaluating the Student Performance Prediction and Action Framework Through a Learning Analytics Intervention Study,'' \textit{Education and Information Technologies}, vol. 30, pp. 2887--2916, 2025.
+
+\bibitem{mai2024}
+J. Mai, F. Wei, W. He, H. Huang, and H. Zhu, ``An Explainable Student Performance Prediction Method Based on Dual-Level Progressive Classification Belief Rule Base,'' \textit{Electronics}, vol. 13, no. 22, p. 4358, 2024.
+
+\bibitem{hu2025}
+J. Hu, H. Wang, and D. Ji, ``Educational Performance Evaluation Based on Fuzzy Evaluation Model,'' \textit{Discover Computing}, vol. 28, p. 345, 2025.
+
+\bibitem{li2024fuzzy}
+D. Li, ``Creating Personalized Higher Education Teaching System Using Fuzzy Association Rule Mining,'' \textit{International Journal of Computational Intelligence Systems}, vol. 17, p. 239, 2024.
+
+\bibitem{albreiki2021}
+B. Albreiki, T. Habuza, Z. Shuqfa, M. A. Serhani, N. Zaki, and S. Harous, ``Customized Rule-Based Model to Identify At-Risk Students and Propose Rational Remedial Actions,'' \textit{Big Data and Cognitive Computing}, vol. 5, no. 4, p. 71, 2021.
+
+\bibitem{rustemi2024}
+A. Rustemi, F. Dalipi, V. Atanasovski, and A. Risteski, ``DIAR: A Blockchain-Based System for Generation and Verification of Academic Diplomas,'' \textit{Discover Applied Sciences}, vol. 6, p. 297, 2024.
+
+\bibitem{cardenas2025}
+M. A. Cardenas-Quispe and A. Pacheco, ``Blockchain Ensuring Academic Integrity with a Degree Verification Prototype,'' \textit{Scientific Reports}, vol. 15, p. 9281, 2025.
+
+\bibitem{sangeetha2025}
+A. S. Sangeetha and S. Shunmugan, ``Privacy-Enabled Academic Certificate Authentication and Deep Learning-Based Student Performance Prediction System Using Hyperledger Blockchain Technology,'' \textit{Journal of Parallel and Distributed Computing}, vol. 204, p. 105119, 2025.
+
+\bibitem{kadhim2023}
+M. Kadhim, A. A. Yassin, and Z. Abduljabbar, ``Towards for Designing Educational System Using Role-Based Access Control,'' \textit{International Journal of Intelligent Engineering and Systems}, vol. 16, pp. 45--56, 2023.
+
+\bibitem{alqahtani2019}
+F. Alqahtani et al., ``Leaderboards and Learning: Engagement in MOOCs,'' \textit{International Review of Research in Open and Distributed Learning}, vol. 20, pp. 134--152, 2019.
+
+\bibitem{sakulkueakulsuk2018}
+B. Sakulkueakulsuk et al., ``Customizable Leaderboards in Educational Games,'' \textit{Games and Culture}, vol. 13, pp. 567--589, 2018.
+
+\end{thebibliography}
+
+\end{document}

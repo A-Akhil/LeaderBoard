@@ -34,3 +34,12 @@ rough_note.md
 
 !frontend/prorank_logo-removebg.png
 !frontend/prorank_logo.png
+
+
+#Latex
+*.bbl
+*.blg
+*.aux
+*.lof
+*.log
+*.output

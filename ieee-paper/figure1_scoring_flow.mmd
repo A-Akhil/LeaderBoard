@@ -1,0 +1,15 @@
+flowchart TD
+    A[Student Submits Event] --> B[Fetch Category Config]
+    B --> C{Category Found?}
+    C -->|No| D[Return 0 Points]
+    C -->|Yes| E[Initialize Total = 0]
+    E --> F[For Each Attribute]
+    F --> G[Get Attribute Value]
+    G --> H{Value in Config?}
+    H -->|Yes| I[Add Points to Total]
+    H -->|No| F
+    I --> F
+    F --> J[Calculate Final Points]
+    J --> K[Update Event Points]
+    K --> L[Update Student Total]
+    L --> M[Recalculate Leaderboard]

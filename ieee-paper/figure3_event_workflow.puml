@@ -1,0 +1,55 @@
+@startuml
+!theme plain
+skinparam backgroundColor transparent
+skinparam shadowing false
+
+|Student|
+start
+:Fill event submission form;
+:Upload proof documents;
+:Request point preview;
+
+|Backend|
+:Fetch category configuration;
+:Calculate points using\nmulti-attribute formula;
+:Return preview to student;
+
+|Student|
+:Review point preview;
+if (Satisfied with preview?) then (yes)
+  :Submit event;
+  
+  |Backend|
+  :Change status to Pending;
+  :Notify assigned faculty;
+  
+  |Faculty|
+  :Review event details;
+  :Verify proof documents;
+  
+  if (Event valid?) then (approve)
+    |Backend|
+    :Update status to Approved;
+    :Calculate final points;
+    :Add points to student total;
+    :Invalidate leaderboard cache;
+    :Trigger leaderboard recalculation;
+    stop
+    
+  else (reject)
+    |Backend|
+    :Update status to Rejected;
+    :Add faculty comments;
+    
+    |Student|
+    :Receive rejection notice;
+    :Edit and resubmit;
+    stop
+  endif
+  
+else (no)
+  :Cancel submission;
+  stop
+endif
+
+@enduml

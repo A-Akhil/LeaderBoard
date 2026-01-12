@@ -1,0 +1,104 @@
+@startuml
+!theme plain
+skinparam linetype ortho
+skinparam ranksep 80
+skinparam nodesep 60
+
+entity "Student" as student {
+  * _id : ObjectId <<PK>>
+  --
+  name : String
+  email : String
+  registerNo : String
+  totalPoints : Number
+  eventsParticipated : Array
+  currentClass : ObjectId <<FK>>
+  classHistory : Array
+  isActive : Boolean
+}
+
+entity "Event" as event {
+  * _id : ObjectId <<PK>>
+  --
+  eventName : String
+  category : String
+  status : Enum
+  pointsEarned : Number
+  dynamicFields : Map
+  proofUrl : Array
+  submittedBy : ObjectId <<FK>>
+  approvedBy : ObjectId <<FK>>
+  date : Date
+}
+
+entity "Teacher" as teacher {
+  * _id : ObjectId <<PK>>
+  --
+  name : String
+  email : String
+  role : Enum
+  department : String
+  classes : Array
+  managedDepartments : Array
+}
+
+entity "Class" as class {
+  * _id : ObjectId <<PK>>
+  --
+  year : Number
+  section : String
+  department : String
+  academicYear : String
+  students : Array
+  facultyAssigned : Array
+  academicAdvisors : Array
+}
+
+entity "DepartmentConfig" as dept {
+  * _id : ObjectId <<PK>>
+  --
+  code : String
+  name : String
+  aliases : Array
+  head : ObjectId <<FK>>
+  isActive : Boolean
+}
+
+entity "CourseConfig" as course {
+  * _id : ObjectId <<PK>>
+  --
+  name : String
+  code : String
+  degreeType : String
+  durationYears : Number
+  isActive : Boolean
+}
+
+entity "PointsConfig" as points {
+  * _id : ObjectId <<PK>>
+  --
+  category : String
+  attributes : Map
+  version : Number
+  isActive : Boolean
+}
+
+entity "FormFieldConfig" as form {
+  * _id : ObjectId <<PK>>
+  --
+  category : String
+  fields : Array
+  validations : Array
+  isActive : Boolean
+}
+
+student }o--|| class : "belongs to"
+student ||--o{ event : "submits"
+teacher ||--o{ event : "approves"
+teacher }o--o{ class : "assigned to"
+dept ||--o| teacher : "managed by"
+class }o--|| course : "follows"
+points ||--o{ event : "calculates"
+form ||--o{ event : "defines structure"
+
+@enduml

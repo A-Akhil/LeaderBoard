@@ -1,0 +1,605 @@
+@article{PICKAL2026102836,
+title = {The winner takes it all – Effects of leaderboard-based feedback on cognitive performance and motivation},
+journal = {Learning and Individual Differences},
+volume = {126},
+pages = {102836},
+year = {2026},
+issn = {1041-6080},
+doi = {https://doi.org/10.1016/j.lindif.2025.102836},
+url = {https://www.sciencedirect.com/science/article/pii/S1041608025002122},
+author = {Amadeus J. Pickal and Matthias Stadler and Michael Sailer and Shurui Bai and Manuel Ninaus and Samuel Greiff and Nicolas Becker and Marco Koch},
+keywords = {Gamification, Game-based learning, Leaderboard-based feedback, Cognitive performance, Intrinsic motivation},
+abstract = {Leaderboards are frequently used in gamified learning; however, results from previous studies on the topic often turn out to be inconsistent. A reason might be the adaptive nature of leaderboards that provide different feedback regarding positions and trends over time. In this study, we systematically manipulated leaderboard-based feedback and investigated its effects on cognitive performance and intrinsic motivation. N = 427 participants were randomly assigned to one of five leaderboard conditions, which differed regarding the received fictitious feedback on initial position (higher/lower) and trend (upward/downward), plus a control condition without feedback. We found small but not substantial group differences in performance over time. However, we did find group differences in intrinsic motivation (highest motivation for higher position with upward trend leaderboard-based feedback). Exploratory analyses suggested no moderating effects of individual characteristics in learners' achievement motives. Results emphasize the need to consider the adaptive nature of leaderboards in research and practice.
+Education relevance statement
+The study results show that leaderboard-based feedback can affect learners' intrinsic motivation. It appears especially motivating for learners to see themselves in higher positions and/or shifting upwards on a leaderboard. This is even the case when the feedback is fictitious and not based on actual performance. Additionally, results show that negative feedback can be more detrimental than no feedback at all. These results also have practical and educational implications, underlining the importance of considering how to frame leaderboard-based feedback for learners, depending on their performance, and that leaderboard-based feedback should be used with caution.}
+}
+
+
+
+@inproceedings{10.1145/3408877.3432544,
+author = {Malone, Mac and Wang, Yicheng and James, Kedrian and Anderegg, Murray and Werner, Jan and Monrose, Fabian},
+title = {To Gamify or Not? On Leaderboard Effects, Student Engagement and Learning Outcomes in a Cybersecurity Intervention},
+year = {2021},
+isbn = {9781450380621},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3408877.3432544},
+doi = {10.1145/3408877.3432544},
+abstract = {We present a gamified learning experience for cybersecurity education that is designed to provide learners with an understanding of the knowledge and techniques needed to solve everyday problems while simultaneously immersing them in a competitive environment. We provide a framework for measuring skills demonstrated by students within an active learning setting where the primary focus is on practical expertise. We also examine several unique aspects of designing such a gamified framework (e.g. the game itself must be insecure enough to be "hackable'', but secure enough not to be abused), and discuss how the framework was used to expose students to various security concepts.We found that our gamified experience heavily engaged students. We also encountered many pain points during our intervention and discovered a number of important aspects of gamified settings that must be carefully considered.For one, the goals of a semi-structured gamified exercise can sometimes lead to learners discovering solutions that do not meet the desired learning objectives. Furthermore, The exploratory nature of such exercises can also lead learners down a rabbit hole that, without a proper "safety net'', they may not exit. Finally, complex tasks modeled after real world applications can leave little room for error, frustrating students and limiting instructors' ability to accurately assess different levels of skill. Based on our experience designing this intervention, we provide a number of transferable recommendations. The challenges we faced and the lessons we learned can be invaluable to those considering gamification as a cybersecurity education strategy.},
+booktitle = {Proceedings of the 52nd ACM Technical Symposium on Computer Science Education},
+pages = {1135–1141},
+numpages = {7},
+keywords = {gamification, cybersecurity education, active learning},
+location = {Virtual Event, USA},
+series = {SIGCSE '21}
+}
+
+
+TY  - JOUR
+AU  - Cigdem, Harun
+AU  - Ozturk, Mustafa
+AU  - Karabacak, Yusuf
+AU  - Atik, Nuri
+AU  - Gürkan, Serkan
+AU  - Aldemir, Mevlana Halit
+PY  - 2024
+DA  - 2024/12/01
+TI  - Unlocking student engagement and achievement: The impact of leaderboard gamification in online formative assessment for engineering education
+JO  - Education and Information Technologies
+SP  - 24835
+EP  - 24860
+VL  - 29
+IS  - 18
+AB  - Effectively engaging learners in an online learning environment is a crucial component of instructional design that contributes to improving performance. Gamification, a contemporary instructional strategy, seeks to integrate game elements such as leaderboards into non-game contexts with the aim of increasing learner engagement and performance. This quasi-experimental study explores the impact of integrating leaderboards as a gamification element into formative assessment on learner achievement and engagement in an engineering course. Conducted over eight weeks in the Mechatronics Technology Department of a public university in Türkiye, the study involved 159 s-year engineering students. Using a pretest-posttest control group design, the intervention included a pre-test in the first week, six weeks of instruction and formative online assessment, and a post-test in the final week. Analyzing the data using descriptive and inferential statistics, the results of the study show a positive correlation between the incorporation of a leaderboard as a gamification element into formative assessment procedures within an online platform and improved learner achievement and engagement. However, it is noted that gamification may not sustain learners’ long-term attention. Therefore, instructors are advised to carefully consider time and retention concerns when designing or adopting gamified learning opportunities.
+SN  - 1573-7608
+UR  - https://doi.org/10.1007/s10639-024-12845-2
+DO  - 10.1007/s10639-024-12845-2
+ID  - Cigdem2024
+ER  -
+@article{article,
+author = {Li, Chunqi and Liang, Lishi and Fryer, Luke and Shum, Alex},
+year = {2024},
+month = {10},
+pages = {3406-3442},
+title = {The use of leaderboards in education: A systematic review of empirical evidence in higher education},
+volume = {40},
+journal = {Journal of Computer Assisted Learning},
+doi = {10.1111/jcal.13077}
+}
+Li, Chunqi & Liang, Lishi & Fryer, Luke & Shum, Alex. (2024). The use of leaderboards in education: A systematic review of empirical evidence in higher education. Journal of Computer Assisted Learning. 40. 3406-3442. 10.1111/jcal.13077. Background
+Leaderboards are among the most popular gamification elements in education. Some studies have implemented leaderboards and reported their individual effects on students' learning. Despite the emergence of relevant empirical studies, most of the existing reviews have only investigated the holistic impact of gamification. No previous systematic reviews were identified examining the individual use of leaderboards.
+Objective
+To address this gap, this review aims to systematically synthesise the existing empirical evidence concerning leaderboard use in education, examine their designs and effectiveness, and propose leaderboard design recommendations in gamified educational settings.
+Method
+This systematic review drew upon 20 articles (22 studies; 29 interventions) published from 2014 to 2023.
+Results
+The results found that using leaderboards can have a beneficial influence on students' learning motivation, engagement, and performance, but their effectiveness largely depends on their designs. Thus, this review examined the effectiveness of specific leaderboard design practices on students' learning and proposed four corresponding leaderboard design recommendations based on well‐established educational and motivational theories as well as pertinent empirical studies.
+Discussions and Conclusions
+Notably, this review found that all included studies were undertaken in higher education and around half of them had short durations (less than or equal to 1 h). More longitudinal studies in other educational levels (e.g., primary and secondary schools) are thus called for to examine the validity and generalisability of the recommendations proposed.
+@article{PHILPOTT2022104605,
+title = {Leaderboards in an EFL course: Student performance and motivation},
+journal = {Computers & Education},
+volume = {190},
+pages = {104605},
+year = {2022},
+issn = {0360-1315},
+doi = {https://doi.org/10.1016/j.compedu.2022.104605},
+url = {https://www.sciencedirect.com/science/article/pii/S0360131522001762},
+author = {Andrew Philpott and Jeong-Bae Son},
+keywords = {Leaderboard, Gamification, Intrinsic motivation, Extrinsic motivation, EFL},
+abstract = {The study reported in this article investigated the use of leaderboards in an English as a foreign language (EFL) course at a Japanese university. The study used self-determination theory as the theoretical foundation to explore how leaderboards affect student performance (i.e., amount of work completed) and foreign language (FL) motivation. It was conducted over a 14-week period with two intact classes of participants; while both classes (i.e., Class 1 and Class 2) were aware of the point system, a leaderboard was used only in Class 1. A quasi-experimental mixed methods research design was utilised to answer two research questions about student performance and motivation. Data showed that a greater number of the participants in Class 2 completed more homework than the weekly point target required, compared to the participants in Class 1. The results of the study suggest that the participants' focus on the extrinsic rewards used by the leaderboard encouraged performance up to the reward threshold but once the threshold had been achieved, performance ceased. They also suggest that the leaderboard's use of points, rank, and forced social comparison to control behaviour resulted in the participants' internally leaning extrinsic motivation shifting to externally grounded extrinsic motivation, undermining intrinsic FL motivation more than supporting it.}
+}
+
+
+
+
+
+
+
+
+
+@article{WANG2025105196,
+title = {Personalization in educational gamification: Learners with different trait competitiveness benefit differently from rankings on leaderboards},
+journal = {Computers & Education},
+volume = {225},
+pages = {105196},
+year = {2025},
+issn = {0360-1315},
+doi = {https://doi.org/10.1016/j.compedu.2024.105196},
+url = {https://www.sciencedirect.com/science/article/pii/S0360131524002100},
+author = {Jing Wang and Shaoying Gong and Yang Cao and Xiaorong Guo and Peiyan Peng},
+keywords = {Teaching strategies, Human-computer interface games, Games, Post-secondary education},
+abstract = {Leaderboards are among the most prevalent game elements and are widely used in educational gamification. However, most research has primarily compared learning scenarios using leaderboards with those not using leaderboards, ignoring the role of specific components of leaderboards such as rankings. Given that learners’ perceptions of leaderboards depend on their rankings, this study investigated how rankings (high vs. low) and learners’ trait competitiveness (high vs. low) influence learning in educational gamification. Sixty-one high-trait-competitiveness and sixty-two low-trait-competitiveness learners were randomly assigned to either high-ranking or low-ranking conditions. The results revealed the moderating role of trait competitiveness in the relationship between leaderboard rankings and learning. Interestingly, higher rankings were more beneficial in enhancing learning motivation of learners with low trait competitiveness, while lower rankings had more positive effects on performance of those with high trait competitiveness. Additionally, negative emotions mediated the relationship between rankings and learning performance, while the mediating effect of learning motivation was only significant for learners with low trait competitiveness. The implications of these findings for the design of effective gamified learning environments based on learners’ characteristics were discussed.}
+}
+
+
+
+
+
+
+
+
+@article{FOSTER2026102846,
+title = {Developing rule-based scoring methods that capture student progress in computational problem-solving in open, interactive tasks},
+journal = {Learning and Individual Differences},
+volume = {126},
+pages = {102846},
+year = {2026},
+issn = {1041-6080},
+doi = {https://doi.org/10.1016/j.lindif.2025.102846},
+url = {https://www.sciencedirect.com/science/article/pii/S1041608025002225},
+author = {Natalie Foster and Jessica L. Holmes and Emma Linsenmayer and Nathan Zoanetti and Huseyin Yildiz},
+keywords = {PISA, Computational problem solving, Large-scale assessment, Automated scoring, Evidence-centred design},
+abstract = {This paper describes the development and validation processes involved in defining evidence rules for computational problem-solving, one of two aspects measured in the PISA 2025 Learning in the Digital World (LDW) assessment. We developed two theory-driven, rule-based scoring approaches – the Expert Strategy and Quality Marker approach – and applied them to a relatively complex and open computational problem-solving task targeting students' capacity to decompose a problem, recognise patterns and create generalisable solutions. The Expert Strategy approach extracts features of students' code aligned with an optimal task solution, whereas the Quality Marker approach rewards incremental progress towards the task goal and in applying target practices. We compare the results of the two approaches with each other and the results of a paired comparison validation study involving experts in the field of programming and computational thinking. We reflect on the practical implications of the results for PISA 2025 and provide directions for applying the methods to other task-types.
+Educational relevance statement
+Assessment of students via complex, interactive and open-ended tasks in technology-rich environments, such as visual programming tasks, present new challenges to assessors, who need to account for the infinite solution space and students' individual strategies for solving these problems. In large-scale and/or international assessment, challenges are compounded by a heterogeneous testing population, in terms of cultural and educational backgrounds and experience with digital tools and visual coding, and by the prohibitive costs of human scoring. Sophisticated automated scoring models are needed that can validly interpret evidence about students' skills and that can flexibly accommodate individual differences in solution pathways. This study contributes new knowledge to existing literature in educational and learning sciences on assessment design by developing and validating sophisticated rule-based scoring approaches that provide granular information about student abilities in computational problem-solving, that are appropriate for both large-scale summative and formative contexts, and that can handle different approaches to solving open tasks. Our approaches are supported by the results of an empirical validation exercise (a paired comparison study) involving experts from the field of programming and computational thinking.}}
+TY  - JOUR
+AU  - Zhou, Wenkai
+AU  - Li, Yunsong
+AU  - Li, Jiaxing
+AU  - Zhang, Tianhao
+AU  - Duan, Xiping
+AU  - Ma, Ning
+AU  - Wang, Yuhe
+PY  - 2025
+DA  - 2025/08/20
+TI  - A student academic performance prediction model based on the interval belief rule base
+JO  - Scientific Reports
+SP  - 30607
+VL  - 15
+IS  - 1
+AB  - Student performance prediction (SPP) constitutes one of the pivotal tasks in educational data analysis. Outcomes from the prediction enables educators to implement targeted interventions for students. Therefore, developing an effective SPP model is of critical importance. The belief rule base (BRB) is a rule-based modeling approach that integrates expert knowledge and effectively manages uncertain information. Nevertheless, when employing traditional BRB to construct a prediction model, excessive input attributes and reference points may result in a combination explosion. Furthermore, in practical scenarios, the configuration of the model’s parameters may be restricted by the limitations of expert knowledge. To overcome these challenges, an SPP model using an interval BRB structure based on the random forest (RF) attribute selection method (IBRB-C) is proposed. The parameters of the IBRB-C model are determined by combining the expert knowledge and the Kmeans++ algorithm. Subsequently, the P-CMA-ES algorithm is applied to optimize the initial model. Ablation experiment is conducted to validate the rationality of the IBRB-C. Finally, case studies on graduate applications and GPA of students demonstrate that the mean squared error (MSE) of the IBRB-C is 0.0024 and 0.1014, respectively. The results of comparative experiments confirm the superiority of the IBRB-C model in predicting student performance.
+SN  - 2045-2322
+UR  - https://doi.org/10.1038/s41598-025-16311-y
+DO  - 10.1038/s41598-025-16311-y
+ID  - Zhou2025
+ER  -
+
+
+@Article{bdcc5040071,
+AUTHOR = {Albreiki, Balqis and Habuza, Tetiana and Shuqfa, Zaid and Serhani, Mohamed Adel and Zaki, Nazar and Harous, Saad},
+TITLE = {Customized Rule-Based Model to Identify At-Risk Students and Propose Rational Remedial Actions},
+JOURNAL = {Big Data and Cognitive Computing},
+VOLUME = {5},
+YEAR = {2021},
+NUMBER = {4},
+ARTICLE-NUMBER = {71},
+URL = {https://www.mdpi.com/2504-2289/5/4/71},
+ISSN = {2504-2289},
+ABSTRACT = {Detecting at-risk students provides advanced benefits for improving student retention rates, effective enrollment management, alumni engagement, targeted marketing improvement, and institutional effectiveness advancement. One of the success factors of educational institutes is based on accurate and timely identification and prioritization of the students requiring assistance. The main objective of this paper is to detect at-risk students as early as possible in order to take appropriate correction measures taking into consideration the most important and influential attributes in students’ data. This paper emphasizes the use of a customized rule-based system (RBS) to identify and visualize at-risk students in early stages throughout the course delivery using the Risk Flag (RF). Moreover, it can serve as a warning tool for instructors to identify those students that may struggle to grasp learning outcomes. The module allows the instructor to have a dashboard that graphically depicts the students’ performance in different coursework components. The at-risk student will be distinguished (flagged), and remedial actions will be communicated to the student, instructor, and stakeholders. The system suggests remedial actions based on the severity of the case and the time the student is flagged. It is expected to improve students’ achievement and success, and it could also have positive impacts on under-performing students, educators, and academic institutions in general.},
+DOI = {10.3390/bdcc5040071}
+}
+
+
+
+
+
+
+
+TY  - JOUR
+AU  - Hu, Jing
+AU  - Wang, Haoxin
+AU  - Ji, Dajie
+PY  - 2025
+DA  - 2025/12/31
+TI  - Educational performance evaluation based on fuzzy evaluation model
+JO  - Discover Computing
+SP  - 345
+VL  - 28
+IS  - 1
+AB  - High school students’ educational achievement must be assessed by considering a range of theoretical and practical tests administered throughout a semester. In addition to being susceptible to subjective bias or inconsistent grading standards, traditional assessment systems frequently miss the subtleties of performance changes, such as abrupt increases or decreases. Based on Type-2 Fuzzy (T2F) sets, this work presents a Balanced Evaluation Model (BEM) to improve the precision and dependability of student performance evaluation. At fuzzy level 2, the suggested model separates imbalanced evaluation inputs, distinguishes between performance improvements and falls, and pinpoints the underlying causes of these changes. To ensure a fair and open assessment of subjects, students, and tests, a final optimization phase is implemented. According to experimental results, compared to traditional assessment methods, there is a 13.06% improvement in identifying high-performance students, an 11.14% reduction in evaluation errors, and a 7.14% decrease in average evaluation time. By combining T2F theory with a multi-examination evaluation framework, this study is new in that it improves fairness, better manages uncertainty, and offers more insightful suggestions for students’ growth. For complex educational assessment situations, the suggested method provides a reliable, open, and adaptable solution.
+SN  - 2948-2992
+UR  - https://doi.org/10.1007/s10791-025-09854-1
+DO  - 10.1007/s10791-025-09854-1
+ID  - Hu2025
+ER  -
+
+
+
+
+
+
+@Article{math12152418,
+AUTHOR = {Liu, Mingyuan and He, Wei and Zhou, Guohui and Zhu, Hailong},
+TITLE = {A New Student Performance Prediction Method Based on Belief Rule Base with Automated Construction},
+JOURNAL = {Mathematics},
+VOLUME = {12},
+YEAR = {2024},
+NUMBER = {15},
+ARTICLE-NUMBER = {2418},
+URL = {https://www.mdpi.com/2227-7390/12/15/2418},
+ISSN = {2227-7390},
+ABSTRACT = {Student performance prediction (SPP) is a pivotal task in educational analytics, enabling proactive interventions and optimized resource allocation by educators. Traditional SPP models are often hindered by their complexity and lack of interpretability. This study introduces a novel SPP framework, the Belief Rule Base with automated construction (Auto–BRB), designed to address these issues. Firstly, reference values are derived through data mining techniques. The model employs an IF–THEN rule-based system integrated with evidential reasoning to ensure both transparency and interpretability. Secondly, parameter optimization is achieved using the Projected Covariance Matrix Adaptive Evolution Strategy (P–CMA–ES), significantly enhancing model accuracy. Moreover, the Akaike Information Criterion (AIC) is then applied to fine-tune the balance between model accuracy and complexity. Finally, case studies on SPP have shown that the Auto–BRB model has an advantage over traditional models in terms of accuracy, while maintaining good interpretability. Therefore, Auto–BRB has excellent application effects in educational data analysis.},
+DOI = {10.3390/math12152418}
+}
+
+
+
+
+
+
+
+
+
+
+TY  - JOUR
+AU  - Li, Dezhi
+PY  - 2024
+DA  - 2024/09/10
+TI  - Creating Personalized Higher Education Teaching System Using Fuzzy Association Rule Mining
+JO  - International Journal of Computational Intelligence Systems
+SP  - 239
+VL  - 17
+IS  - 1
+AB  - Universities and colleges aim to provide students with a solid academic foundation. Quality instruction is one strategy for achieving the highest possible standard in the higher education system. Personalized teaching caters to each student by adapting the learning pace and method to their specific requirements. However, the present state of customized education in higher education resources prevents proper resources from being extracted due to a lack of multi-dimensional association analysis between students, circumstances, and materials. A hybrid personalized teaching system utilizing fuzzy association rules mining is the goal of this research to improve learning in higher education. Effective multi-dimensional association analysis among students, settings, and instructional materials is facilitated by the fuzzy association rules mining-based hybrid personalized teaching system (FARM-HPT). The proposed study conforms to AI standards, is based on fuzzy logic theories, and guarantees precise university-level resource discovery. The study builds on earlier work in data mining by presenting a new, learner-specific recommendation model for personalized teaching that uses FARM to ensure accurate resource recognition and efficient mining of instructional assets at the higher education level. This new approach generates fewer set comparisons and does them faster than the current standard. Focusing on experimental validation, the study shows that the FARM-HPT system can generate individualized lessons while overcoming the constraints of traditional information mining methods. These findings align with AI standards, which shows how important it is to validate new AI approaches using robust empirical evidence. The system ensures effective accuracy on various datasets: LFW (89.76%), JAOLAD (94.43%), OECD (95.43%) and OULAD (97.45%).
+SN  - 1875-6883
+UR  - https://doi.org/10.1007/s44196-024-00641-2
+DO  - 10.1007/s44196-024-00641-2
+ID  - Li2024
+ER  -
+
+
+
+
+@inproceedings{10.1145/3636555.3636884,
+author = {Kaliisa, Rogers and Misiejuk, Kamila and L\'{o}pez-Pernas, Sonsoles and Khalil, Mohammad and Saqr, Mohammed},
+title = {Have Learning Analytics Dashboards Lived Up to the Hype? A Systematic Review of Impact on Students' Achievement, Motivation, Participation and Attitude},
+year = {2024},
+isbn = {9798400716188},
+publisher = {Association for Computing Machinery},
+address = {New York, NY, USA},
+url = {https://doi.org/10.1145/3636555.3636884},
+doi = {10.1145/3636555.3636884},
+abstract = {While learning analytics dashboards (LADs) are the most common form of LA intervention, there is limited evidence regarding their impact on students’ learning outcomes. This systematic review synthesizes the findings of 38 research studies to investigate the impact of LADs on students' learning outcomes, encompassing achievement, participation, motivation, and attitudes. As we currently stand, there is no evidence to support the conclusion that LADs have lived up to the promise of improving academic achievement. Most studies reported negligible or small effects, with limited evidence from well-powered controlled experiments. Many studies merely compared users and non-users of LADs, confounding the dashboard effect with student engagement levels. Similarly, the impact of LADs on motivation and attitudes appeared modest, with only a few exceptions demonstrating significant effects. Small sample sizes in these studies highlight the need for larger-scale investigations to validate these findings. Notably, LADs showed a relatively substantial impact on student participation. Several studies reported medium to large effect sizes, suggesting that LADs can promote engagement and interaction in online learning environments. However, methodological shortcomings, such as reliance on traditional evaluation methods, self-selection bias, the assumption that access equates to usage, and a lack of standardized assessment tools, emerged as recurring issues. To advance the research line for LADs, researchers should use rigorous assessment methods and establish clear standards for evaluating learning constructs. Such efforts will advance our understanding of the potential of LADs to enhance learning outcomes and provide valuable insights for educators and researchers alike.},
+booktitle = {Proceedings of the 14th Learning Analytics and Knowledge Conference},
+pages = {295–304},
+numpages = {10},
+keywords = {Learning analytics dashboards (LADs), impact, learning outcomes, systematic review},
+location = {Kyoto, Japan},
+series = {LAK '24}
+}
+
+@inproceedings{inproceedings,
+author = {Revano, Teodoro and Garcia, Manuel},
+year = {2021},
+month = {12},
+pages = {},
+title = {Designing Human-Centered Learning Analytics Dashboard for Higher Education Using a Participatory Design Approach},
+doi = {10.1109/HNICEM54116.2021.9731917}
+}
+Revano, Teodoro & Garcia, Manuel. (2021). Designing Human-Centered Learning Analytics Dashboard for Higher Education Using a Participatory Design Approach. 10.1109/HNICEM54116.2021.9731917. Higher education institutions (HEIs) are looking for new methods to assess and monitor student learning outcomes, as well as objectively determine the circumstances that contribute to their growth in different courses. Advances in new analytics tools that put visualizations and dashboards on top of live student data are making learning analytics more powerful than ever. This study utilized a participatory design (PD) technique to formulate an analytics dashboard intended for higher education. The rationale behind the study lies on the belief that an information system must be designed for users, rather than users having to accommodate a wide range of adjustments just to utilize such application. Students and teachers were recruited for their feedback and observations, respectively. After multiple PD sessions, four main crucial factors were derived: (1) who has access to data, (2) importance of time, (3) learning analytics should help students make the transition to university life, and (4) it should be discipline-specific. This study opens up a discussion on the importance of human-centered design through the use of PD and how learning analytics dashboard can be maximized to its potential when deployed in the academe.
+
+
+
+
+
+
+
+
+
+
+
+
+@article{article,
+author = {Vreugd, Lars and van Leeuwen, Anouschka and Jansen, Renée and Schaaf, M.F.},
+year = {2024},
+month = {10},
+pages = {1-14},
+title = {Learning Analytics Dashboard Design and Evaluation to Support Student Self-Regulation of Study Behaviour},
+journal = {Journal of Learning Analytics},
+doi = {10.18608/jla.2024.8529}
+}
+Vreugd, Lars & van Leeuwen, Anouschka & Jansen, Renée & Schaaf, M.F.. (2024). Learning Analytics Dashboard Design and Evaluation to Support Student Self-Regulation of Study Behaviour. Journal of Learning Analytics. 1-14. 10.18608/jla.2024.8529. For university students, self-regulation of study behaviour is important. However, students are not always capable of effective self-regulation. Providing study behaviour information via a learning analytics dashboard (LAD) may support phases within self-regulated learning (SRL). However, it is unclear what information a LAD should provide, how to present information in a usable manner, and what the information’s perceived usefulness is in supporting self-regulation of study behaviour. This study entails a sequential mixed design: assessing information needs in focus groups (n=7), exploring usability via think-aloud interviews (n=8), assessing usability with the System Usability Scale (n=42), and assessing perceived usefulness via interviews (n=16). Results showed that students and tutors agreed on the relevance of the constructs chosen from literature but differed in ranking the importance of new constructs. Usability exploration led to several design improvements. Perceived usefulness assessment showed the LAD supported the appraisal of study behaviour. A need for reference frames to facilitate data interpretation was vocalized. Impacts on study behaviour varied, possibly because preparatory activities were not used. Impact could be improved by further integrating the LAD into existing learning processes.
+
+
+
+
+
+
+
+
+
+
+@article{article,
+author = {Herodotou, Christothea and Shrestha, Sagun and Comfort, Catherine and Andrews, Heshan and Mulholland, Paul and Bayer, Vaclav and Maguire, Claire and Lee, John and Fernandez, Miriam},
+year = {2025},
+month = {07},
+pages = {1-17},
+title = {A Participatory Approach to Designing a Student-Facing Dashboard for Online and Distance Education},
+volume = {12},
+journal = {Journal of Learning Analytics},
+doi = {10.18608/jla.2025.8481}
+}
+Herodotou, Christothea & Shrestha, Sagun & Comfort, Catherine & Andrews, Heshan & Mulholland, Paul & Bayer, Vaclav & Maguire, Claire & Lee, John & Fernandez, Miriam. (2025). A Participatory Approach to Designing a Student-Facing Dashboard for Online and Distance Education. Journal of Learning Analytics. 12. 1-17. 10.18608/jla.2025.8481. In this paper, we explore the design of a student-facing dashboard for online and distance learning with a focus on capturing and addressing specific learning needs. A participatory process involving 20 students was employed, which included a screening questionnaire and focus group discussions. The selection of data points to be displayed on the dashboard was mainly determined by student responses regarding the usefulness of a feature, and a high frequency of their agreement. The data analysis revealed that the learning needs of online students relate to course support and communication (with tutors and other students). In response to this, students expressed a desire for accessing information related to their assignments, study time, and tutorials. The data points endorsed by students related to descriptive (assignment scores, engagement with the virtual learning environment, material accessed), predictive (score prediction), and prescriptive data (material recommendations and contact information). Student choices of data points were driven by a desire to better understand their study progress and take appropriate action. These insights emphasize the need for designing dashboards that not only describe performance but foremost “prescribe” to students potential solutions to overcome performance challenges.
+
+
+
+
+
+
+
+
+TY  - JOUR
+AU  - Susnjak, Teo
+AU  - Ramaswami, Gomathy Suganya
+AU  - Mathrani, Anuradha
+PY  - 2022
+DA  - 2022/02/14
+TI  - Learning analytics dashboard: a tool for providing actionable insights to learners
+JO  - International Journal of Educational Technology in Higher Education
+SP  - 12
+VL  - 19
+IS  - 1
+AB  - This study investigates current approaches to learning analytics (LA) dashboarding while highlighting challenges faced by education providers in their operationalization. We analyze recent dashboards for their ability to provide actionable insights which promote informed responses by learners in making adjustments to their learning habits. Our study finds that most LA dashboards merely employ surface-level descriptive analytics, while only few go beyond and use predictive analytics. In response to the identified gaps in recently published dashboards, we propose a state-of-the-art dashboard that not only leverages descriptive analytics components, but also integrates machine learning in a way that enables both predictive and prescriptive analytics. We demonstrate how emerging analytics tools can be used in order to enable learners to adequately interpret the predictive model behavior, and more specifically to understand how a predictive model arrives at a given prediction. We highlight how these capabilities build trust and satisfy emerging regulatory requirements surrounding predictive analytics. Additionally, we show how data-driven prescriptive analytics can be deployed within dashboards in order to provide concrete advice to the learners, and thereby increase the likelihood of triggering behavioral changes. Our proposed dashboard is the first of its kind in terms of breadth of analytics that it integrates, and is currently deployed for trials at a higher education institution.
+SN  - 2365-9440
+UR  - https://doi.org/10.1186/s41239-021-00313-7
+DO  - 10.1186/s41239-021-00313-7
+ID  - Susnjak2022
+ER  -
+
+
+
+
+@inproceedings{inproceedings,
+author = {Colling, Leona and Kholin, Mareike and Meurers, Detmar},
+year = {2024},
+month = {06},
+pages = {538-548},
+title = {A Learning Analytics Dashboard for K-12 English Teachers - Bridging the Gap Between Student Process Data and Teacher Needs},
+doi = {10.1145/3631700.3665228}
+}
+Colling, Leona & Kholin, Mareike & Meurers, Detmar. (2024). A Learning Analytics Dashboard for K-12 English Teachers - Bridging the Gap Between Student Process Data and Teacher Needs. 538-548. 10.1145/3631700.3665228. Educational technologies are being used more and more in secondary school settings. This increases the amount of students’ learning-related data produced and stored. To keep up with this rise and to get most out of the collected data, teachers need digital tools that support and facilitate their pedagogical decision-making process. Learning analytics dashboards can be a good source to provide teachers with necessary insights into their students’ learning processes. However, for such tools to be effective and actionable, they have to be aligned with teachers’ needs and thus, provide and visualize data in a concise and structured way.
+
+We therefore conducted a survey study with 11 English teachers from K-12 secondary schools in Germany who evaluated the assumed usefulness of possible dashboard features. Based on these findings, we developed a teacher dashboard incorporating the most desired functionalities, such as a quickly accessible summary of strengths, weaknesses and support needs, or an overview of current misconceptions and competencies alongside additional metrics in order to support multiple teaching practices.
+The implementation and the underlying calculations are described, focusing on the importance of learners’ process data to provide teachers with a detailed and revealing view on their students’ and class learning states. In an evaluation study of the dashboard’s prototype with mock data, teachers (n=6) gave high ratings for the dashboard’s usability.
+
+
+
+
+
+
+
+
+@article{article,
+author = {Kadhim Kabier, Maha and Yassin, Ali adil and Abduljabbar, Zaid},
+year = {2023},
+month = {03},
+pages = {2023},
+title = {Towards for Designing Educational System Using Role-Based Access Control},
+journal = {International Journal of Intelligent Engineering and Systems},
+doi = {10.22266/ijies2023.0430.05}
+}
+Kadhim Kabier, Maha & Yassin, Ali adil & Abduljabbar, Zaid. (2023). Towards for Designing Educational System Using Role-Based Access Control. International Journal of Intelligent Engineering and Systems. 2023. 10.22266/ijies2023.0430.05. During the COVID-19 pandemic, online electronic educational systems have been used in most schools and universities as they were forced to move their operations from classrooms to online settings. However, these systems face a serious security issue. Access control considers the core of data security for any implemented system. This paper presents the well-known role-based access control (RBAC) approach to enhance system security and improve user role and system privilege. This study also addresses the issues faced by extant schemes, such as security risk tolerance, by proposing a privacy-preserving educational system that utilizes RBAC and smart multi-factor authentication. This approach uses an asymmetric cryptosystem based on the Elgamal digital signature operation to provide multi-factor authentication while relying on low-complexity cryptographic hash functions. RBAC manages system security via the "user classification, role authorization, and unified management" approach. By limiting the amount of data that users can access, RBAC is particularly suited for multi-level applications. This approach also uses informal analysis and the Scyther tool to conduct extensive formal security proofs. RBAC offers many benefits, including mutual authentication, identity anonymity, forward secrecy, key management, and high resistance to well-known attacks, such as phishing, replay, Man-In-The-Middle (MITM), and insider attacks. Compared with other schemes, RBAC offers more security features and boasts higher cost effectiveness in processing and communication. Furthermore, our work achieves a good balance between performance and security complexity when compared to the state-of-the-art. So, we get good results at a cost of 0.253 ms for computing and 1326 bits for communication.
+
+
+
+
+
+
+
+
+TY  - JOUR
+AU  - Rustemi, Avni
+AU  - Dalipi, Fisnik
+AU  - Atanasovski, Vladimir
+AU  - Risteski, Aleksandar
+PY  - 2024
+DA  - 2024/05/28
+TI  - DIAR: a blockchain-based system for generation and verification of academic diplomas
+JO  - Discover Applied Sciences
+SP  - 297
+VL  - 6
+IS  - 6
+AB  - Nowadays, the centralized systems used in higher education institutions are sophisticated and have high security mechanisms, offering secure data transfer and real-time encryption. Despite the prevalent usage of centralized systems in many institutions, particularly those within the realm of higher education, some unresolved concerns persist pertaining to privacy, potential abuse, transparency, and the limited capacity to digitize numerous services. Blockchain systems are considered as a potential solution for addressing these constraints. This study begins by highlighting the significance of implementing blockchain systems in higher education institutions, while also outlining the obstacles encountered by researchers in this domain. Centralized systems and blockchain systems are distinguished, with a description of the challenges related to data transfer and adaptation to different platforms. A thorough explanation of the proposed blockchain system begins with a presentation of the conceptual model, followed by a detailed architecture of the processes that would be executed by the system, with particular emphasis on the generation and authentication of academic credentials. Additionally, an analysis is provided on the significance of smart contracts in the programming of blockchain systems. This includes a detailed explanation of the main smart contract architecture used in the proposed blockchain system. This article aims to explore the development of a proposed blockchain system and its practical implementation for testing purposes using specific scenarios and data in the foreseeable future.
+SN  - 3004-9261
+UR  - https://doi.org/10.1007/s42452-024-05984-1
+DO  - 10.1007/s42452-024-05984-1
+ID  - Rustemi2024
+ER  -
+
+
+
+TY  - JOUR
+AU  - Cardenas-Quispe, Mariano Anthony
+AU  - Pacheco, Alex
+PY  - 2025
+DA  - 2025/03/18
+TI  - Blockchain ensuring academic integrity with a degree verification prototype
+JO  - Scientific Reports
+SP  - 9281
+VL  - 15
+IS  - 1
+AB  - Blockchain technology has transformed information management through decentralization, security and immutability. However, a gap persists in its application for the issuance and verification of professional qualifications in education. This study presents a prototype developed in Python and Docker, designed to guarantee the authenticity and traceability of academic credentials through a hybrid blockchain network with six Docker nodes. The prototype includes processes such as initial data registration, node configuration, credential generation with QR codes and associative signature based on Byzantine consensus. During the signing stage, previously stored records are validated and authenticated, ensuring integrity before final credentials are generated. The peer-to-peer network ensures synchronization, decentralized storage and immutability of records. On average, initial title registration on the blockchain took 2.97 s, with block replication taking 0.02 s. Record signing had a latency of 0.96 s, with replication in 0.79 s, and Byzantine consensus took 0.12 s, all with moderate resource consumption. The generated titles, verifiable via QR codes, reinforce trust and reduce academic fraud. This model stands out for its practical and scalable approach, with potential for adaptation to other sectors. Future work should address the scalability and robustness of the system for more complex applications.
+SN  - 2045-2322
+UR  - https://doi.org/10.1038/s41598-025-93913-6
+DO  - 10.1038/s41598-025-93913-6
+ID  - Cardenas-Quispe2025
+ER  -
+
+
+
+
+
+
+@article{AS2025105119,
+title = {Privacy-enabled academic certificate authentication and deep learning-based student performance prediction system using hyperledger blockchain technology},
+journal = {Journal of Parallel and Distributed Computing},
+volume = {204},
+pages = {105119},
+year = {2025},
+issn = {0743-7315},
+doi = {https://doi.org/10.1016/j.jpdc.2025.105119},
+url = {https://www.sciencedirect.com/science/article/pii/S0743731525000863},
+author = {Sangeetha A․S and Shunmugan S},
+keywords = {Blockchain, Certificate verification, Authentication, Hashing function, XOR},
+abstract = {Blockchain systems do not rely on trust for electronic transactions and it emerged as a popular technology due to its attributes like immutability, transparency, distributed storage, and decentralized control. Student certificates and skill verification play crucial roles in job applications and other purposes. In traditional systems, certificate forgery is a common problem, especially in online education. Processes, such as issuing and verifying student certifications along with student performance prediction for higher education or job recruitment are often lengthy and time-consuming. Integrating blockchain into certificate verification protocols offers authenticity and significantly reduces processing times. Hence, this research introduced a novel secure privacy preservation-based academic certificate authentication system (CertAuthSystem) for verifying the academic certificates of students. The CertAuthSystem contains different entities, such as Student, System, University, Blockchain, and Company. The university issues certificates to students, which are stored in Blockchain, and when the student applies for a job/scholarship, he/she transmits the certificate and the blockID to the organization, based on which verification is performed. Moreover, the student’s performance is predicted by a classifier named Deep Long Short-Term Memory (DLSTM). Then, CertAuthSystem is examined for its superiority considering measures, like validation time, memory, throughput and execution time and has achieved values of 53.412 ms, 86.6 MB, 94.876 Mbps, and 73.57 ms, correspondingly for block size 7. Finally, the prediction analysis of the DLSTM classifier is done based on evaluation metrics, such as precision, recall and F measure, which attained superior values of 90.77 %, 92.99 %, and 91.86 %.}
+}
+
+
+
+
+
+
+@article{article,
+author = {Fazil, Mohd and Risquez, Angelica and Halpin, Claire},
+year = {2024},
+month = {05},
+pages = {1-19},
+title = {A Novel Deep Learning Model for Student Performance Prediction Using Engagement Data},
+volume = {11},
+journal = {Journal of Learning Analytics},
+doi = {10.18608/jla.2024.7985}
+}
+Fazil, Mohd & Risquez, Angelica & Halpin, Claire. (2024). A Novel Deep Learning Model for Student Performance Prediction Using Engagement Data. Journal of Learning Analytics. 11. 1-19. 10.18608/jla.2024.7985. Technology-enhanced learning supported by virtual learning environments (VLEs) facilitates tutors and students.VLE platforms contain a wealth of information that can be used to mine insight regarding students’ learning behaviourand relationships between behaviour and academic performance, as well as to model data-driven decision-making.This study introduces a system that we termed ASIST: a novel Attention-aware convolutional Stacked BiLSTM net-work for student representation learning to predict their performance. ASIST exploits student academic registry, VLEclick stream, and midterm continuous assessment information for their behaviour representation learning. ASISTjointly learns the student representation using five behaviour vectors. It processes the four sequential behaviourvectors using a separate stacked bidirectional long short term memory (LSTM) network. A deep convolutional neuralnetwork models the diurnal weekly interaction behaviour. It also employs the attention mechanism to assign weightto features based on their importance. Next, five encoded feature vectors are concatenated with the assessmentinformation, and, finally, a softmax layer predicts the high-performer (H), moderate-performer (M), and at-risk (F)categories of students. We evaluate ASIST over three datasets from an Irish university, considering five evaluationmetrics. ASIST achieves an area under the curve (AUC) score of 0.86 to 0.90 over the three datasets. It outperformsthree baseline deep learning models and four traditional classification models. We also found that the attentionmechanism has a slight impact on ASIST’s performance. The ablation analysis reveals that weekly event count hasthe greatest impact on ASIST, whereas diurnal weekly interaction has the least impact. The early prediction usingthe first seven weeks of data achieves an AUC of 0.83 up to 0.89 over the three datasets. In yearly analysis, ASISTperforms best over the 2018/19 dataset and worst over the 2020/21 dataset.
+
+
+
+
+
+
+TY  - JOUR
+AU  - Alalawi, Khalid
+AU  - Athauda, Rukshan
+AU  - Chiong, Raymond
+AU  - Renner, Ian
+PY  - 2025
+DA  - 2025/02/01
+TI  - Evaluating the student performance prediction and action framework through a learning analytics intervention study
+JO  - Education and Information Technologies
+SP  - 2887
+EP  - 2916
+VL  - 30
+IS  - 3
+AB  - Learning analytics intervention (LAI) studies aim to identify at-risk students early during an academic term using predictive models and facilitate educators to provide effective interventions to improve educational outcomes. A major impediment to the uptake of LAI is the lack of access to LAI infrastructure by educators to pilot LAI, which typically requires substantial institution-wide efforts and investment to collect related data sets and develop accurate predictive models that identify at-risk students and also provide tools to facilitate interventions. This paper presents a novel LAI framework, termed Student Performance Prediction and Action (SPPA), that facilitates educators to seamlessly provide LAIs in their courses avoiding the need for large-scale institution-wide efforts and investments. Educators develop course-specific predictive models using historical course assessment data. In learning analytics, providing effective interventions is a challenge. SPPA utilises pedagogy principles in course design and interventions to facilitate effective interventions by providing insights into students’ risk levels, gaps in students’ knowledge, and personalised study/revision plans addressing knowledge gaps. SPPA was evaluated in a large undergraduate course on its ability to predict at-risk students and facilitate effective interventions as well as its ease of use by academics. The results are encouraging with high performance of predictive models, facilitating effective interventions leading to significant improved educational outcomes with positive feedback and uptake by academics. With its advantages, SPPA has the potential to catalyse and influence wide-scale adoption in LAIs.
+SN  - 1573-7608
+UR  - https://doi.org/10.1007/s10639-024-12923-5
+DO  - 10.1007/s10639-024-12923-5
+ID  - Alalawi2025
+ER  -
+
+@Article{electronics13224358,
+AUTHOR = {Mai, Jiahao and Wei, Fanxu and He, Wei and Huang, Haolan and Zhu, Hailong},
+TITLE = {An Explainable Student Performance Prediction Method Based on Dual-Level Progressive Classification Belief Rule Base},
+JOURNAL = {Electronics},
+VOLUME = {13},
+YEAR = {2024},
+NUMBER = {22},
+ARTICLE-NUMBER = {4358},
+URL = {https://www.mdpi.com/2079-9292/13/22/4358},
+ISSN = {2079-9292},
+ABSTRACT = {Explainable artificial intelligence (XAI) is crucial in education for making educational technologies more transparent and trustworthy. In the domain of student performance prediction, both the results and the processes need to be recognized by experts, making the requirement for explainability very high. The belief rule base (BRB) is a hybrid-driven method for modeling complex systems that integrates expert knowledge with transparent reasoning processes, thus providing good explainability. However, class imbalances in student grades often lead models to ignore minority samples, resulting in inaccurate assessments. Additionally, BRB models face the challenge of losing explainability during the optimization process. Therefore, an explainable student performance prediction method based on dual-level progressive classification BRB (DLBRB-i) has been proposed. Principal component regression (PCR) is used to select key features, and models are constructed based on selected metrics. The BRB’s first layer classifies data broadly, while the second layer refines these classifications for accuracy. By incorporating explainability constraints into the population-based covariance matrix adaptation evolution strategy (P-CMA-ES) optimization process, the explainability of the model is ensured effectively. Finally, empirical analysis using real datasets validates the diagnostic accuracy and explainability of the DLBRB-i model.},
+DOI = {10.3390/electronics13224358}
+}
+
+
+
+
+
+
+
+
+TY  - JOUR
+AU  - Rebelo Marcolino, Markson
+AU  - Reis Porto, Thiago
+AU  - Thompsen Primo, Tiago
+AU  - Targino, Rafael
+AU  - Ramos, Vinicius
+AU  - Marques Queiroga, Emanuel
+AU  - Munoz, Roberto
+AU  - Cechinel, Cristian
+PY  - 2025
+DA  - 2025/03/21
+TI  - Student dropout prediction through machine learning optimization: insights from moodle log data
+JO  - Scientific Reports
+SP  - 9840
+VL  - 15
+IS  - 1
+AB  - Student attrition and academic failure remain pervasive challenges in education, often occurring at substantial rates and posing considerable difficulties for timely identification and intervention. Learning management systems such as Moodle generate extensive datasets reflecting student interactions and enrollment patterns, presenting opportunities for predictive analytics. This study seeks to advance the field of dropout and failure prediction through the application of artificial intelligence with machine learning methodologies. In particular, we employed the CatBoost algorithm, trained on student activity logs from the Moodle platform. To mitigate the challenges posed by a limited and imbalanced dataset, we employed sophisticated data balancing techniques, such as Adaptive Synthetic Sampling, and conducted multi-objective hyperparameter optimization using the Non-dominated Sorting Genetic Algorithm II. We compared models trained on weekly log data against a single model trained on all weeks’ data. The proposed model trained with all weeks’ data demonstrated superior performance, showing significant improvements in F1-scores and recall, particularly for the minority class of at-risk students. For example, the model got an average F1-score across multiple weeks of approximately 0.8 in the holdout test. These findings underscore the potential of targeted machine learning approaches to facilitate early identification of at-risk students, thereby enabling timely interventions and improving educational outcomes.
+SN  - 2045-2322
+UR  - https://doi.org/10.1038/s41598-025-93918-1
+DO  - 10.1038/s41598-025-93918-1
+ID  - Rebelo Marcolino2025
+ER  -
+
+
+TY  - JOUR
+AU  - Tariq, Rasikh
+AU  - Orozco-del-Castillo, M. G.
+AU  - Zamir, Muhammad Tayyab
+AU  - Ramírez-Montoya, Maria Soledad
+AU  - Wilberforce, Tabbi
+PY  - 2025
+DA  - 2025/11/03
+TI  - Explainable artificial intelligence for predictive modeling of student stress in higher education
+JO  - Scientific Reports
+SP  - 38375
+VL  - 15
+IS  - 1
+AB  - Student stress in higher education remains a pervasive problem, yet many institutions lack affordable, scalable, and interpretable tools for its detection and management. Existing methods frequently depend on costly physiological sensors and opaque machine learning models, limiting their applicability in resource-constrained settings. The objective of this research is to develop a cost-effective, survey-based stress classification model using multiple machine learning algorithms and eXplainable Artificial Intelligence (XAI) to support transparent and actionable decision-making in educational environments. Drawing on a dataset of university students, the research applies a supervised machine learning pipeline to classify stress levels and identify key contributing variables. Six classification algorithms—Logistic Regression, Support Vector Machine (SVM), Decision Tree, Random Forest, Gradient Boosting, and XGBoost—were employed and optimized using grid search and cross-validation for hyperparameter tuning. Evaluation metrics included precision, recall, F1-score, and overall accuracy. The Random Forest model achieved the highest classification accuracy of 0.89, followed by XGBoost at 0.87, Gradient Boosting at 0.85, Decision Tree at 0.83, SVM at 0.82, and Logistic Regression at 0.81. SHAP (SHapley Additive exPlanations) analysis was conducted to interpret model predictions and rank feature importance. The analysis revealed five principal predictors: blood pressure, perceived safety, sleep quality, teacher-student relationship, and participation in extracurricular activities. Results demonstrate that both physiological indicators and psychosocial conditions contribute meaningfully to stress prediction. The study concludes that institutional interventions targeting health monitoring, campus safety, behavioral support, relational pedagogy, and extracurricular engagement can effectively mitigate student stress. These findings provide an empirical foundation for the development of integrated policies in higher education aimed at promoting student well-being.
+SN  - 2045-2322
+UR  - https://doi.org/10.1038/s41598-025-22171-3
+DO  - 10.1038/s41598-025-22171-3
+ID  - Tariq2025
+ER  -
+
+
+TY  - JOUR
+AU  - Ahmed, Wesam
+AU  - Wani, Mudasir Ahmad
+AU  - Plawiak, Pawel
+AU  - Meshoul, Souham
+AU  - Mahmoud, Amena
+AU  - Hammad, Mohamed
+PY  - 2025
+DA  - 2025/07/24
+TI  - Machine learning-based academic performance prediction with explainability for enhanced decision-making in educational institutions
+JO  - Scientific Reports
+SP  - 26879
+VL  - 15
+IS  - 1
+AB  - Education is crucial for the growth of effective life skills and the allocation of needed resources. Higher education institutions are adopting advanced technologies, such as artificial intelligence (AI), to enhance traditional teaching methods. Predicting academic performance has become increasingly important, improving university rankings and expanding student opportunities. This study addresses challenges in performance analysis, quality education delivery, and student evaluation through machine learning (ML) models. Ten regression models including K-Nearest Neighbors Regressor, Linear Regression, CatBoost, XGBoost, AdaBoost, and ensemble voting regression (VR) algorithm based on the top five heterogeneous regressors as base models are employed to predict academic outcomes. Two datasets with distinct feature sets and sizes were used to evaluate the generalizability of the models. The first dataset comprises 10,000 samples and six features focused on study behaviors, prior performance, and extracurricular activities. The second dataset includes 6,607 records and 20 features encompassing academic habits, demographic attributes, and institutional factors such as attendance, teacher quality, and parental involvement. Best model performance goes to the linear regression in standalone ML models. Then, the proposed ensemble VR model was built using weighted averages based on the performances of the base models. The local interpretable model-agnostic explanations (LIME) and SHapley Additive exPlanations (SHAP) are then used to explain the predictions produced by the proposed ensemble VR model. For the first dataset, the VR model achieved an RMSE of 0.1050, MAE of 0.0837, and R² of 0.9890. On the second, more complex dataset, the VR model also performed best with an R² of 0.7716 using the full feature set, highlighting its robustness and adaptability across diverse academic contexts. These results offer actionable insights for educators, administrators, and policymakers to better understand student performance drivers and support data-informed educational strategies.
+SN  - 2045-2322
+UR  - https://doi.org/10.1038/s41598-025-12353-4
+DO  - 10.1038/s41598-025-12353-4
+ID  - Ahmed2025
+ER  -
+TY  - JOUR
+AU  - Marín, Yuri Reina
+AU  - Huatangari, Lenin Quiñones
+AU  - Tuesta, Judith Nathaly Alva
+AU  - Caro, Omer Cruz
+AU  - Guevara, Jorge Luis Maicelo
+AU  - Bardales, Einstein Sánchez
+AU  - Santos, River Chávez
+PY  - 2025
+DA  - 2025/11/27
+TI  - Analysis of factors affecting the academic performance of university students using machine learning
+JO  - Scientific Reports
+SP  - 44027
+VL  - 15
+IS  - 1
+AB  - Understanding the determinants of university students’ academic performance has become a strategic priority for higher education institutions, especially in contexts marked by social, economic, and academic diversity. However, performance assessment remains a challenge due to the complexity of the educational process and the nonlinear nature of learning behaviors. A machine learning-based prediction model was developed using primary data from 386 university students. The performance of nine educational data mining (EDM) algorithms, including XGBoost, Random Forest, artificial neural networks (ANNs), Support Vector Machines, Decision Trees, Naive Bayes, Logistic Regression, AdaBoost, and K-Nearest Neighbors (KNN), was evaluated using demographic, socioeconomic, academic, social and family, health and wellness, infrastructure and services, and time management and extracurricular activity factors. The results reveal that machine learning is an effective tool for representing nonlinear relationships between academic performance and its determinants, allowing for accurate prediction of academic outcomes and explaining the individual contribution of each variable through sensitivity and interpretability analyses. Despite differences in their predictive accuracy, all algorithms effectively modeled educational dynamics. In particular, those models that integrate multiple student dimensions demonstrated better generalization capabilities. It is concluded that, to achieve an accurate assessment of academic performance in diverse university environments, it is essential to consider influencing factors in machine learning-based predictive models.
+SN  - 2045-2322
+UR  - https://doi.org/10.1038/s41598-025-28870-1
+DO  - 10.1038/s41598-025-28870-1
+ID  - Marín2025
+ER  -
+
+
+
+TY  - JOUR
+AU  - Zhan, Zhonghua
+AU  - Shen, Tongping
+PY  - 2025
+DA  - 2025/10/21
+TI  - Development of a prediction model for student teaching satisfaction based on 10 machine learning algorithms
+JO  - Scientific Reports
+SP  - 36547
+VL  - 15
+IS  - 1
+AB  - Educational data mining has become an effective tool for exploring the hidden relationships in educational data and predicting students’ academic performance. Educational evaluation is an important part of the teaching process, and the traditional evaluation methods have problems such as high subjectivity and low efficiency. The advancement of machine learning technology has led to an increasing interest in data-driven methods for evaluating student teaching. This study utilizes a dataset pertaining to student evaluations from Turkey to apply and compare ten machine learning algorithms, namely Random Forest (RF), Gradient Boosting Machine (GBM), Naive Bayes (NB), K-Nearest Neighbors (KNN), Neural Networks Algorithm (Nnet), Flexible Discriminant Analysis (FDA), Support Vector Machine (SVM), Classification and Regression Trees (CART), Sparse Linear Discriminant Analysis (SLDA), and AdaBoost (ADA), in predicting student satisfaction ratings. The findings indicate that the SVM algorithm yielded the most favorable results, with performance metrics including Accuracy, Sensitivity, Specificity, Positive Predictive Value (PPV), Negative Predictive Value (NPV), Precision, Recall, F1 Score and Standard Error (SE) recorded at 0.9765, 0.9887, 0.9789, 0.9891, 0.9789, 0.9765, 0.9777, and 0.0042, respectively. Furthermore, the SVM model’s predictive outcomes were elucidated by applying the SHAP (SHapley Additive exPlanations) framework. Finally, we developed the Shiny application for online prediction of learning effect satisfaction, which can provide educators with a scientific basis for evaluation and technical support for personalized teaching and curriculum optimization.
+SN  - 2045-2322
+UR  - https://doi.org/10.1038/s41598-025-19039-x
+DO  - 10.1038/s41598-025-19039-x
+ID  - Zhan2025
+ER  -
