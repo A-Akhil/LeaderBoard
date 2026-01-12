@@ -18,7 +18,7 @@
 
 \begin{document}
 
-\title{ProRank: A Metadata-Driven System for Comprehensive Student Achievement Tracking in Higher Education}
+\title{PRO-RANK: Policy Based Recognition and Ranking System}
 
 \author{
 \begin{tabular}{@{}c@{\hspace{1cm}}c@{\hspace{1cm}}c@{}}
@@ -59,7 +59,7 @@
 \maketitle
 
 \begin{abstract}
-Modern higher education emphasizes holistic student development beyond academics, with students engaging in diverse co-curricular activities such as hackathons, research publications, certifications, and open-source contributions. However, tracking these achievements remains fragmented across multiple platforms, creating administrative burden and reducing student motivation through delayed or inconsistent recognition. We present \textit{ProRank}, a comprehensive achievement tracking system serving two core purposes: as a centralized hub providing 15+ customizable report types spanning student, class, department, and institution levels with complete historical tracking, and as a real-time motivation engine with live leaderboard updates where every effort—winning or participation—receives transparent point-based recognition. ProRank implements a metadata-driven architecture enabling institutional adaptability without code changes, a multi-attribute dynamic scoring engine with preview functionality, and role-based access control across 7 stakeholder types. Production deployment demonstrates scalability and validates the dual-purpose approach of combining archival capabilities with competitive motivation mechanisms. Key contributions include the effort-inclusive recognition model, transparent rule-based scoring framework, and comprehensive reporting infrastructure addressing needs of students, faculty, advisors, department heads, and institutional leadership.
+Modern higher education emphasizes holistic student development beyond academics, with students engaging in diverse co-curricular activities such as hackathons, research publications, certifications, and open-source contributions. However, tracking these achievements remains fragmented across multiple platforms, creating administrative burden and reducing student motivation through delayed or inconsistent recognition. We present \textit{PRO-RANK}, a comprehensive achievement tracking system serving two core purposes: as a centralized hub providing 15+ customizable report types spanning student, class, department, and institution levels with complete historical tracking, and as a real-time motivation engine with live leaderboard updates where every effort—winning or participation—receives transparent point-based recognition. PRO-RANK implements a metadata-driven architecture enabling institutional adaptability without code changes, a multi-attribute dynamic scoring engine with preview functionality, and role-based access control across 7 stakeholder types. Production deployment demonstrates scalability and validates the dual-purpose approach of combining archival capabilities with competitive motivation mechanisms. Key contributions include the effort-inclusive recognition model, transparent rule-based scoring framework, and comprehensive reporting infrastructure addressing needs of students, faculty, advisors, department heads, and institutional leadership.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -72,9 +72,9 @@ Contemporary higher education recognizes that student success extends far beyond
 
 Despite this recognized importance, educational institutions face substantial systemic challenges. Current practices remain predominantly manual and fragmented. Students maintain achievement records across disparate platforms with no unified institutional repository. Faculty spend considerable time manually verifying certificates. This fragmentation creates critical problems: achievements scattered across platforms create no single source of truth for scholarships or placements, lack of standardized scoring causes perceived inequity, delayed recognition severely diminishes motivational impact, and graduation eliminates institutional visibility into longitudinal patterns.
 
-We present \textit{ProRank}, a comprehensive achievement tracking system serving dual purposes: centralized hub providing customizable reports across student, class, department, and institution levels, and real-time motivation engine with live leaderboards featuring effort-inclusive recognition. The system consolidates achievements from GitHub, competitive programming platforms, certification providers, and conferences into one queryable database. Every approved submission triggers instant leaderboard updates. Critically, points are awarded for both winning and participation, ensuring every student effort receives quantified acknowledgment. Students preview exact point calculations before submission, building trust.
+We present \textit{PRO-RANK}, a comprehensive achievement tracking system serving dual purposes: centralized hub providing customizable reports across student, class, department, and institution levels, and real-time motivation engine with live leaderboards featuring effort-inclusive recognition. The system consolidates achievements from GitHub, competitive programming platforms, certification providers, and conferences into one queryable database. Every approved submission triggers instant leaderboard updates. Critically, points are awarded for both winning and participation, ensuring every student effort receives quantified acknowledgment. Students preview exact point calculations before submission, building trust.
 
-ProRank implements metadata-driven architecture storing departments, courses, categories, and scoring rules in database collections rather than code, enabling institutional portability and A/B testing. Multi-attribute scoring considers event level, organizer type, mode, and outcome. Role-based access control manages seven roles with granular permissions. CSV-based bulk import processes students per semester with validation pipelines. Context-aware leaderboards filter by department, year, section, and category.
+PRO-RANK implements metadata-driven architecture storing departments, courses, categories, and scoring rules in database collections rather than code, enabling institutional portability and A/B testing. Multi-attribute scoring considers event level, organizer type, mode, and outcome. Role-based access control manages seven roles with granular permissions. CSV-based bulk import processes students per semester with validation pipelines. Context-aware leaderboards filter by department, year, section, and category.
 
 Our contributions include: metadata-driven design enabling institutional adaptability without code changes, multi-attribute scoring framework with transparent rule-based calculation and retroactive recalculation support, dual-purpose architecture combining archival hub and motivational engine, production-scale validation with multiple report types serving seven stakeholder roles, and effort-inclusive recognition model valuing participation alongside winning.
 
@@ -88,14 +88,14 @@ Performance prediction and scoring methods enable early intervention and fair re
 
 Blockchain technology enhances academic credential verification and integrity. Rustemi et al. \cite{rustemi2024} developed DIAR, a blockchain system for diploma verification ensuring immutability and transparency. Cardenas-Quispe and Pacheco \cite{cardenas2025} created degree verification prototypes preventing credential fraud. Sangeetha and Shunmugan \cite{sangeetha2025} implemented privacy-enabled certificate authentication using Hyperledger blockchain combined with deep learning for performance prediction.
 
-Kadhim et al. \cite{kadhim2023} analyzed RBAC in educational platforms, showing hierarchical permission models with department-scoped visibility balance access needs with privacy. ProRank implements 7 roles with scoped permissions where Super Admins configure metadata but cannot access student events, Faculty approve only assigned classes, and HODs see department analytics.
+Kadhim et al. \cite{kadhim2023} analyzed RBAC in educational platforms, showing hierarchical permission models with department-scoped visibility balance access needs with privacy. PRO-RANK implements 7 roles with scoped permissions where Super Admins configure metadata but cannot access student events, Faculty approve only assigned classes, and HODs see department analytics.
 
-Existing work addresses individual aspects but lacks comprehensive solutions integrating archival, motivational, and administrative needs. Most systems focus on in-course activities ignoring co-curricular achievements, provide platform-specific tracking without institutional aggregation, emphasize either archival or motivation but rarely both, and hardcode institutional parameters requiring developer involvement for customization. ProRank addresses these gaps through cross-platform aggregation spanning 6+ categories, dual-purpose architecture combining centralized hub (15+ reports, historical queries) with motivation engine (live leaderboards, effort-inclusive recognition), metadata-driven design enabling portability without code changes, and production-scale validation supporting 7 roles across organizational levels.
+Existing work addresses individual aspects but lacks comprehensive solutions integrating archival, motivational, and administrative needs. Most systems focus on in-course activities ignoring co-curricular achievements, provide platform-specific tracking without institutional aggregation, emphasize either archival or motivation but rarely both, and hardcode institutional parameters requiring developer involvement for customization. PRO-RANK addresses these gaps through cross-platform aggregation spanning 6+ categories, dual-purpose architecture combining centralized hub (15+ reports, historical queries) with motivation engine (live leaderboards, effort-inclusive recognition), metadata-driven design enabling portability without code changes, and production-scale validation supporting 7 roles across organizational levels.
 
 \section{System Architecture}
 
 \subsection{Technology Stack}
-ProRank implements a REST API architecture with backend services handling business logic, authentication, and data persistence. The backend uses a server-side JavaScript runtime with token-based stateless authentication and secure password hashing using industry-standard cryptographic algorithms. The database employs an on-premises NoSQL document database with schema validation ensuring data integrity. File uploads (proof documents) are stored on local server storage with structured directory organization. The system follows layered architecture principles: controllers handle HTTP requests and input validation, services implement business logic (scoring calculations, leaderboard generation, metadata management), and the data layer provides persistence abstractions with caching mechanisms.
+PRO-RANK implements a REST API architecture with backend services handling business logic, authentication, and data persistence. The backend uses a server-side JavaScript runtime with token-based stateless authentication and secure password hashing using industry-standard cryptographic algorithms. The database employs an on-premises NoSQL document database with schema validation ensuring data integrity. File uploads (proof documents) are stored on local server storage with structured directory organization. The system follows layered architecture principles: controllers handle HTTP requests and input validation, services implement business logic (scoring calculations, leaderboard generation, metadata management), and the data layer provides persistence abstractions with caching mechanisms.
 
 Deployment uses on-premises infrastructure within institutional intranet to ensure sensitive student data remains within institutional network boundaries, satisfying data protection policies and compliance requirements. This architecture choice prioritizes data sovereignty over cloud convenience, reflecting institutional risk management decisions for personally identifiable information.
 
@@ -105,7 +105,7 @@ The database consists of 17 collections organized into three functional categori
 \begin{figure}[t]
 \centering
 \includegraphics[width=0.48\textwidth]{figure2_database_schema.png}
-\caption{Database schema showing core entities and metadata collections with relationships. Student belongs to Class, submits Events approved by Teachers. Metadata collections (Department, Course, Points, FormField) drive configuration.}
+\caption{Database schema with core entities and metadata collections.}
 \label{fig:database}
 \end{figure}
 
@@ -124,7 +124,7 @@ Relationships follow document database design patterns: Student many-to-one Clas
 Indexing strategy optimizes query performance. Compound index \texttt{\{department: 1, year: 1, section: 1, isActive: 1\}} on Student collection accelerates leaderboard filtering. Single-field index \texttt{\{status: 1\}} on Event collection enables rapid pending event lookup for faculty approval queue. Text index supports full-text search across event descriptions.
 
 \subsection{Multi-Role Authentication Framework}
-ProRank implements hierarchical role-based access control (RBAC) with seven distinct roles providing granular permission management. Table \ref{tab:rbac} details the access control matrix.
+PRO-RANK implements hierarchical role-based access control (RBAC) with seven distinct roles providing granular permission management. Table \ref{tab:rbac} details the access control matrix.
 
 \begin{table}[t]
 \centering
@@ -154,7 +154,7 @@ Super Admin & - & - & - & - & - & \checkmark \\
 
 \textbf{Heads of Department (HODs)} manage all classes within their department, approve events department-wide, and access department-level analytics. Authorization checks \texttt{user.department === event.student.department}.
 
-\textbf{Associate Chairpersons} oversee multiple departments (array of managed department codes), providing coordination for institutions with federated structures. Middleware validates \texttt{user.managedDepartments.includes(targetDepartment)}.
+\textbf{Associate Chairpersons} oversee multiple departments (array of managed department codes), providing coordination for institutions with federated structures. Middleware validates \texttt{user.managed-} \texttt{Departments.includes(targetDepartment)}.
 
 \textbf{Chairperson} has institution-wide visibility across all departments, classes, and students, generating cross-departmental analytics and top-performer institution-level reports. Flag \texttt{isInstitutionWide: true} bypasses department filters in database queries.
 
@@ -163,7 +163,7 @@ Super Admin & - & - & - & - & - & \checkmark \\
 Authentication tokens encode userId, role, and scoped permissions (classIds array, departmentCodes array). Middleware validates token signature, expiration, and role-permission mapping before granting controller access. Password security implements bcrypt hashing with salt rounds=10. Reset tokens use crypto.randomBytes(32), expire after 1 hour, and invalidate on use. Brute-force protection rate-limits login attempts using express-rate-limit middleware.
 
 \subsection{Metadata-Driven Configuration}
-Traditional educational systems hardcode institutional parameters in application source code, requiring developer involvement and redeployment for any institutional change. ProRank adopts metadata-first design: all configuration stored in database collections editable through admin APIs without code modifications.
+Traditional educational systems hardcode institutional parameters in application source code, requiring developer involvement and redeployment for any institutional change. PRO-RANK adopts metadata-first design: all configuration stored in database collections editable through admin APIs without code modifications.
 
 This approach provides institutional portability (deploying at new university requires only populating metadata collections), rapid adaptation (adding departments/courses via admin interface), A/B testing (create multiple PointsConfig versions, activate for different semesters, compare outcomes), and retroactive recalculation (batch job recomputes all events with new rules).
 
@@ -174,11 +174,20 @@ Metadata queries use in-memory caching with 5-minute TTL and observer pattern fo
 \section{Core Features and Implementation}
 
 \subsection{Dynamic Scoring Engine}
-ProRank's scoring engine implements multi-attribute rule-based calculation enabling transparent, reproducible point assignment across diverse achievement types. When students submit events, backend fetches category-specific PointsConfig and computes:
+PRO-RANK's scoring engine implements multi-attribute rule-based calculation enabling transparent, reproducible point assignment across diverse achievement types. When students submit events, backend fetches category-specific PointsConfig and computes:
 
 \begin{equation}
 P_{total} = P_{base}[level] + \sum_{i=1}^{n} P_{bonus}[attr_i]
 \end{equation}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.48\textwidth,height=10cm,keepaspectratio]{figure1_scoring_flow.png}
+\caption{Multi-attribute scoring flow with preview functionality.}
+\label{fig:scoring}
+\end{figure}
+
+Figure \ref{fig:scoring} illustrates the scoring workflow.
 
 where $P_{base}$ represents level (primary difficulty indicator) and $P_{bonus}$ captures contextual modifiers (organizer reputation, participation mode, competitive outcome). Level contributes 10-50 points reflecting achievement difficulty gradation. Organizer type adds 3-5 bonus points recognizing that industry-sponsored events typically involve higher competition intensity than academic events. Mode differentiates solo achievements (+5 requiring full responsibility) from team efforts (+3 distributing cognitive load). Outcome provides substantial differentiation ranging from participant (+5) to winner (+25) while crucially ensuring non-zero recognition for all participation.
 
@@ -189,7 +198,14 @@ Transparency mechanism: Before submission, students request point preview where 
 Retroactive recalculation workflow: When admins modify scoring rules, they increment rule version number and activate new configuration. Admin then triggers batch recalculation job: fetch all approved events for affected category, recompute points with new rules, calculate delta, bulk update event pointsEarned and student totalPoints, regenerate all leaderboards. Algorithm complexity: O(n) per event, O(n×m) for full recalculation where n=events, m=attributes.
 
 \subsection{Event Submission Workflow}
-Students initiate event submission by selecting category from configured EnumConfig values. The system dynamically loads category-specific form fields from FormFieldConfig: Hackathons require level/organizer/mode/outcome/teamSize, Research Papers require venue/doi/citationCount/authors, Certifications require provider/validityPeriod/certificateId. This dynamic form generation eliminates hardcoded forms, enabling institutions to add categories without UI code changes.
+Students initiate event submission by selecting category from configured EnumConfig values. The system dynamically loads category-specific form fields from FormFieldConfig: Hackathons require level/organizer/mode/outcome/teamSize, Research Papers require venue/doi/citationCount/authors, Certifications require provider/validityPeriod/certificateId. This dynamic form generation eliminates hardcoded forms, enabling institutions to add categories without UI code changes. Figure \ref{fig:workflow} illustrates the complete workflow.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.48\textwidth]{figure3_event_workflow.png}
+\caption{Event submission workflow from draft to approval.}
+\label{fig:workflow}
+\end{figure}
 
 Students upload proof documents (certificates, screenshots, PDFs) to local server storage with structured paths and 5MB size limits. Multer middleware handles validation for images and PDFs only, with max 3 files per event. Event transitions to Draft status, allowing editing before final submission.
 
@@ -205,7 +221,7 @@ Context-awareness enables multiple simultaneous leaderboards: department leaderb
 Algorithm complexity: O(n log n) for sorting, O(n) for ranking assignment, O(1) for cached retrieval.
 
 \subsection{Comprehensive Reporting Infrastructure}
-ProRank provides 15+ distinct report types addressing analytical needs across four organizational levels. Table \ref{tab:reports} categorizes reports by stakeholder access.
+PRO-RANK provides 15+ distinct report types addressing analytical needs across four organizational levels. Table \ref{tab:reports} categorizes reports by stakeholder access.
 
 \begin{table}[t]
 \centering
@@ -252,7 +268,7 @@ CSV-based bulk onboarding supports students, teachers, and classes. Admin upload
 
 \section{Reporting Infrastructure}
 
-The reporting infrastructure detailed in Table \ref{tab:reports} represents ProRank's realization as a centralized achievement hub. These 15+ report types transform raw event data into actionable insights for diverse stakeholders, addressing the fragmentation problem where achievements previously scattered across platforms become queryable institutional knowledge.
+The reporting infrastructure detailed in Table \ref{tab:reports} represents PRO-RANK's realization as a centralized achievement hub. These 15+ report types transform raw event data into actionable insights for diverse stakeholders, addressing the fragmentation problem where achievements previously scattered across platforms become queryable institutional knowledge.
 
 Student-level reports enable placement coordinators to export top performers by category for recruiter sharing. Academic advisors identify at-risk students with zero submissions by Week-6 triggering intervention. Scholarship committees filter by research publications rapidly shortlisting candidates. Historical tracking survives graduation as alumni access permanent achievement portfolios for graduate applications and professional networking.
 
@@ -267,7 +283,7 @@ Reports generated on-demand via MongoDB aggregation pipelines enable complex que
 
 \section{Discussion}
 
-ProRank consolidates achievements from GitHub, competitive programming platforms, certification portals, and conferences into one institutional database with 15+ query interfaces enabling previously impossible queries surviving graduation. The live leaderboard creates competitive atmosphere with instant rank recalculation visible within 10 minutes. The effort-inclusive philosophy ensures 100\% of approved submissions receive recognition. Multi-attribute formula decomposition makes point calculation auditable. The metadata-driven architecture provides institutional portability requiring zero source code modifications, supporting A/B testing through version-controlled configurations.
+PRO-RANK consolidates achievements from GitHub, competitive programming platforms, certification portals, and conferences into one institutional database with 15+ query interfaces enabling previously impossible queries surviving graduation. The live leaderboard creates competitive atmosphere with instant rank recalculation visible within 10 minutes. The effort-inclusive philosophy ensures 100\% of approved submissions receive recognition. Multi-attribute formula decomposition makes point calculation auditable. The metadata-driven architecture provides institutional portability requiring zero source code modifications, supporting A/B testing through version-controlled configurations.
 
 Initial system setup requires 10-15 hours configuring courses, categories, and form fields. Faculty must visually inspect certificates, remaining vulnerable to sophisticated manipulation. Planned enhancements include API integrations with certification providers, OCR-based text extraction, and blockchain-based immutable records. System deployment covered only one semester, providing insufficient data for leaderboard fatigue analysis. Mitigation strategies include periodic resets, rotating recognition criteria, and gamification featuring badges and team challenges. Current in-memory cache loses state on server restart. Future work includes distributed cache, WebSocket connections for real-time broadcasting, and cross-platform mobile application. Students from higher socioeconomic backgrounds participate more in paid events creating advantage. Partial mitigation weighs free events equally in scoring rules. Public leaderboards cause anxiety for bottom-quartile students. Future consideration includes privacy controls allowing students to hide profiles.
 
@@ -277,9 +293,9 @@ Mid-development migration from hardcoded enums to metadata collections required 
 
 \section{Conclusion}
 
-This paper presented ProRank, a comprehensive student achievement tracking system serving dual purposes: centralized institutional hub and real-time motivation engine. The metadata-driven architecture enables institutional adaptability without code modifications, while multi-attribute scoring framework transparently calculates points across diverse categories with effort-inclusive recognition ensuring every approved submission receives quantified acknowledgment.
+This paper presented PRO-RANK, a comprehensive student achievement tracking system serving dual purposes: centralized institutional hub and real-time motivation engine. The metadata-driven architecture enables institutional adaptability without code modifications, while multi-attribute scoring framework transparently calculates points across diverse categories with effort-inclusive recognition ensuring every approved submission receives quantified acknowledgment.
 
-ProRank's key innovation unifies archival and motivational functions. Traditional systems emphasize either historical record-keeping or ephemeral gamification. ProRank demonstrates these purposes reinforce synergistically: archival capabilities provide historical context enriching motivational feedback, while motivational elements drive participation populating the archival repository. Institutions gain data-driven insights, reduced administrative overhead through bulk import achieving 150× time reduction, and permanent achievement records enabling alumni analytics. Future work includes API integrations for automated verification, personalized interfaces based on trait competitiveness, machine learning event recommendations, and multi-university federated leaderboards with privacy-preserving mechanisms.
+PRO-RANK's key innovation unifies archival and motivational functions. Traditional systems emphasize either historical record-keeping or ephemeral gamification. PRO-RANK demonstrates these purposes reinforce synergistically: archival capabilities provide historical context enriching motivational feedback, while motivational elements drive participation populating the archival repository. Institutions gain data-driven insights, reduced administrative overhead through bulk import achieving 150× time reduction, and permanent achievement records enabling alumni analytics. Future work includes API integrations for automated verification, personalized interfaces based on trait competitiveness, machine learning event recommendations, and multi-university federated leaderboards with privacy-preserving mechanisms.
 
 \begin{thebibliography}{99}
 
