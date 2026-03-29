@@ -1,72 +1,68 @@
-\documentclass[conference]{IEEEtran}
-\IEEEoverridecommandlockouts
+\documentclass[12pt]{article}
 
-% Packages
-\usepackage{cite}
+\usepackage[a4paper,margin=1in]{geometry}
+
+\usepackage{natbib}
 \usepackage{amsmath,amssymb,amsfonts}
 \usepackage{algorithmic}
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
-\usepackage{booktabs}
-\usepackage{multirow}
-\usepackage{url}
-\usepackage{hyperref}
+\usepackage{tabularx}
+\usepackage{booktabs}   % add in preamble
+\usepackage{ragged2e}
+\usepackage{titlesec}
+\usepackage{subcaption}
 \usepackage{pgfplots}
 \pgfplotsset{compat=1.18}
 
-\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
-    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+% float flexibility to avoid figure-only pages where possible
+\renewcommand{\topfraction}{0.9}
+\renewcommand{\bottomfraction}{0.8}
+\renewcommand{\textfraction}{0.07}
+\renewcommand{\floatpagefraction}{0.85}
+\setcitestyle{authoryear,aysep={, },notesep={; }}
+\setlength{\textfloatsep}{8pt plus 2pt minus 2pt}
+\setlength{\floatsep}{8pt plus 2pt minus 2pt}
+\setlength{\intextsep}{8pt plus 2pt minus 2pt}
+\setlength{\emergencystretch}{2em}
+
+
+% wrapped left column
+\newcolumntype{L}{>{\RaggedRight\arraybackslash}X}
+
+% centered wrapped column
+\newcolumntype{C}{>{\Centering\arraybackslash}X}
+% left-aligned wrapped column
+\newcolumntype{Y}{>{\RaggedRight\arraybackslash}X}
+
+\titleformat{\section}{\normalfont\bfseries\centering}{\thesection.}{0.5em}{}
+\titleformat{\subsection}{\normalfont\bfseries}{\thesubsection}{0.5em}{}
+\titleformat{\subsubsection}[runin]{\normalfont\itshape}{\thesubsubsection}{0.5em}{}[.]
 
 \begin{document}
 
-\title{PRO-RANK: Policy Based Recognition and Ranking System}
+\title{Multi-Source Data Preprocessing for Wind Regime Analysis at the Muppandal Wind Corridor}
 
-\author{
-\begin{tabular}{@{}c@{\hspace{1cm}}c@{\hspace{1cm}}c@{}}
-\begin{tabular}{@{}c@{}}
-{\sublargesize A. Akhil}\\[0.1em]
-\textit{\small Department of Computational Intelligence}\\
-\textit{\small SRM Institute of Science and Technology}\\
-\small Kattankulathur, Tamil Nadu, India\\
-\small az3805@srmist.edu.in\\[0.5em]
-\end{tabular}
-&
-\begin{tabular}{@{}c@{}}
-{\sublargesize C Dhiya}\\[0.1em]
-\textit{\small Department of Computational Intelligence}\\
-\textit{\small SRM Institute of Science and Technology}\\
-\small Kattankulathur, Tamil Nadu, India\\
-\small dc8059@srmist.edu.in\\[0.5em]
-\end{tabular}
-&
-\begin{tabular}{@{}c@{}}
-{\sublargesize Sasi Rekha Sankar}\\[0.1em]
-\textit{\small Department of Computational Intelligence}\\
-\textit{\small SRM Institute of Science and Technology}\\
-\small Kattankulathur, Tamil Nadu, India\\
-\small sasireks@srmist.edu.in\\[0.5em]
-\end{tabular}
-&
-\begin{tabular}{@{}c@{}}
-{\sublargesize Revanth Anand}\\[0.1em]
-\textit{\small Department of Computational Intelligence}\\
-\textit{\small SRM Institute of Science and Technology}\\
-\small Kattankulathur, Tamil Nadu, India\\
-\small ra6857@srmist.edu.in\\[0.5em]
-\end{tabular}
-\end{tabular}
+\author{%
+A Akhil$^{1}$, C Dhiya$^{1}$, Sasi Rekha Sankar$^{1}$\\
+\small $^{1}$Department of Computational Intelligence,\\
+\small SRM Institute of Science and Technology, Chennai, Tamil Nadu, India\\
+\small \texttt{az3805@srmist.edu.in; dc8059@srmist.edu.in,sasireks@srmist.edu.in}\\
 }
+
+\date{}
 
 \maketitle
 
 \begin{abstract}
 Modern higher education emphasizes holistic student development beyond academics, with students engaging in diverse co-curricular activities such as hackathons, research publications, certifications, and open-source contributions. However, tracking these achievements remains fragmented across multiple platforms, creating administrative burden and reducing student motivation through delayed or inconsistent recognition. We present \textit{PRO-RANK}, a comprehensive achievement tracking system serving two core purposes: as a centralized hub providing 15+ customizable report types spanning student, class, department, and institution levels with complete historical tracking, and as a real-time motivation engine with live leaderboard updates where every effort—winning or participation—receives transparent point-based recognition. PRO-RANK implements a metadata-driven architecture enabling institutional adaptability without code changes, a multi-attribute dynamic scoring engine with preview functionality, and role-based access control across 7 stakeholder types. Deployment across 850+ students resulted in a 47\% increase in recorded co-curricular participation compared to the previous academic year, with administrative processing time reduced by 92\% through automated workflows. Key contributions include the effort-inclusive recognition model, transparent rule-based scoring framework, and comprehensive reporting infrastructure addressing needs of students, faculty, advisors, department heads, and institutional leadership.
 \end{abstract}
+\vspace{0.5em}
+\noindent\textbf{Keywords:} Achievement tracking, leaderboards, learning analytics, metadata-driven architecture, educational technology, student motivation, rule-based scoring.
 
-\begin{IEEEkeywords}
-Achievement tracking, leaderboards, learning analytics, metadata-driven architecture, educational technology, student motivation, rule-based scoring
-\end{IEEEkeywords}
+
+
 
 \section{Introduction}
 
@@ -448,86 +444,59 @@ PRO-RANK's key innovation unifies archival and motivational functions. Tradition
 
 \begin{thebibliography}{99}
 
-\bibitem{cigdem2024}
-H. Cigdem, M. Ozturk, Y. Karabacak, N. Atik, S. Gürkan, and M. H. Aldemir, ``Unlocking Student Engagement and Achievement: The Impact of Leaderboard Gamification in Online Formative Assessment for Engineering Education,'' \textit{Education and Information Technologies}, vol. 29, no. 18, pp. 24835--24860, 2024.
+\bibitem[Cigdem et~al.(2024)]{cigdem2024} Cigdem et~al. (2024). Unlocking student engagement and achievement: The impact of leaderboard gamification in online formative assessment for engineering education. \textit{Education and Information Technologies}, 29(18), 24835--24860.
 
-\bibitem{malone2021}
-M. Malone, Y. Wang, K. James, M. Anderegg, J. Werner, and F. Monrose, ``To Gamify or Not? On Leaderboard Effects, Student Engagement and Learning Outcomes in a Cybersecurity Intervention,'' in \textit{Proc. ACM SIGCSE Technical Symposium}, 2021, pp. 1135--1141.
+\bibitem[Malone et~al.(2021)]{malone2021} Malone et~al. (2021). To gamify or not? On leaderboard effects, student engagement and learning outcomes in a cybersecurity intervention. In \textit{Proc. ACM SIGCSE Technical Symposium} (pp. 1135--1141).
 
-\bibitem{wang2025}
-J. Wang, S. Gong, Y. Cao, X. Guo, and P. Peng, ``Personalization in Educational Gamification: Learners with Different Trait Competitiveness Benefit Differently from Rankings on Leaderboards,'' \textit{Computers \& Education}, vol. 225, p. 105196, 2025.
+\bibitem[Wang et~al.(2025)]{wang2025} Wang et~al. (2025). Personalization in educational gamification: Learners with different trait competitiveness benefit differently from rankings on leaderboards. \textit{Computers \& Education}, 225, 105196.
 
-\bibitem{li2024}
-C. Li, L. Liang, L. Fryer, and A. Shum, ``The Use of Leaderboards in Education: A Systematic Review of Empirical Evidence in Higher Education,'' \textit{Journal of Computer Assisted Learning}, vol. 40, pp. 3406--3442, 2024.
+\bibitem[Li et~al.(2024)]{li2024} Li et~al. (2024). The use of leaderboards in education: A systematic review of empirical evidence in higher education. \textit{Journal of Computer Assisted Learning}, 40, 3406--3442.
 
-\bibitem{pickal2026}
-A. J. Pickal, M. Stadler, M. Sailer, S. Bai, M. Ninaus, S. Greiff, N. Becker, and M. Koch, ``The Winner Takes It All: Effects of Leaderboard-Based Feedback on Cognitive Performance and Motivation,'' \textit{Learning and Individual Differences}, vol. 126, p. 102836, 2026.
+\bibitem[Pickal et~al.(2026)]{pickal2026} Pickal et~al. (2026). The winner takes it all: Effects of leaderboard-based feedback on cognitive performance and motivation. \textit{Learning and Individual Differences}, 126, 102836.
 
-\bibitem{philpott2022}
-A. Philpott and J.-B. Son, ``Leaderboards in an EFL Course: Student Performance and Motivation,'' \textit{Computers \& Education}, vol. 190, p. 104605, 2022.
+\bibitem[Philpott and Son(2022)]{philpott2022} Philpott and Son (2022). Leaderboards in an EFL course: Student performance and motivation. \textit{Computers \& Education}, 190, 104605.
 
-\bibitem{revano2021}
-T. Revano and M. Garcia, ``Designing Human-Centered Learning Analytics Dashboard for Higher Education Using a Participatory Design Approach,'' in \textit{Proc. IEEE International Conference on Teaching and Learning}, 2021, pp. 89--97.
+\bibitem[Revano and Garcia(2021)]{revano2021} Revano and Garcia (2021). Designing human-centered learning analytics dashboard for higher education using a participatory design approach. In \textit{Proc. IEEE International Conference on Teaching and Learning} (pp. 89--97).
 
-\bibitem{kaliisa2024}
-R. Kaliisa, K. Misiejuk, S. López-Pernas, M. Khalil, and M. Saqr, ``Have Learning Analytics Dashboards Lived Up to the Hype? A Systematic Review of Impact on Students' Achievement, Motivation, Participation and Attitude,'' in \textit{Proc. ACM Learning Analytics and Knowledge Conference}, 2024, pp. 295--304.
+\bibitem[Kaliisa et~al.(2024)]{kaliisa2024} Kaliisa et~al. (2024). Have learning analytics dashboards lived up to the hype? A systematic review of impact on students' achievement, motivation, participation and attitude. In \textit{Proc. ACM Learning Analytics and Knowledge Conference} (pp. 295--304).
 
-\bibitem{vreugd2024}
-L. Vreugd, A. van Leeuwen, R. Jansen, and M. F. Schaaf, ``Learning Analytics Dashboard Design and Evaluation to Support Student Self-Regulation of Study Behaviour,'' \textit{Journal of Learning Analytics}, vol. 11, pp. 1--14, 2024.
+\bibitem[Vreugd et~al.(2024)]{vreugd2024} Vreugd et~al. (2024). Learning analytics dashboard design and evaluation to support student self-regulation of study behaviour. \textit{Journal of Learning Analytics}, 11, 1--14.
 
-\bibitem{herodotou2025}
-C. Herodotou, S. Shrestha, C. Comfort, H. Andrews, P. Mulholland, V. Bayer, C. Maguire, J. Lee, and M. Fernandez, ``A Participatory Approach to Designing a Student-Facing Dashboard for Online and Distance Education,'' \textit{Journal of Learning Analytics}, vol. 12, pp. 1--17, 2025.
+\bibitem[Herodotou et~al.(2025)]{herodotou2025} Herodotou et~al. (2025). A participatory approach to designing a student-facing dashboard for online and distance education. \textit{Journal of Learning Analytics}, 12, 1--17.
 
-\bibitem{colling2024}
-L. Colling, M. Kholin, and D. Meurers, ``A Learning Analytics Dashboard for K-12 English Teachers: Bridging the Gap Between Student Process Data and Teacher Needs,'' in \textit{Proc. ACM Learning Analytics and Knowledge Conference}, 2024, pp. 538--548.
+\bibitem[Colling et~al.(2024)]{colling2024} Colling et~al. (2024). A learning analytics dashboard for K-12 English teachers: Bridging the gap between student process data and teacher needs. In \textit{Proc. ACM Learning Analytics and Knowledge Conference} (pp. 538--548).
 
-\bibitem{susnjak2022}
-T. Susnjak, G. S. Ramaswami, and A. Mathrani, ``Learning Analytics Dashboard: A Tool for Providing Actionable Insights to Learners,'' \textit{International Journal of Educational Technology in Higher Education}, vol. 19, p. 12, 2022.
+\bibitem[Susnjak et~al.(2022)]{susnjak2022} Susnjak et~al. (2022). Learning analytics dashboard: A tool for providing actionable insights to learners. \textit{International Journal of Educational Technology in Higher Education}, 19, 12.
 
-\bibitem{foster2026}
-N. Foster, J. L. Holmes, E. Linsenmayer, N. Zoanetti, and H. Yildiz, ``Developing Rule-Based Scoring Methods that Capture Student Progress in Computational Problem-Solving in Open, Interactive Tasks,'' \textit{Learning and Individual Differences}, vol. 126, p. 102846, 2026.
+\bibitem[Foster et~al.(2026)]{foster2026} Foster et~al. (2026). Developing rule-based scoring methods that capture student progress in computational problem-solving in open, interactive tasks. \textit{Learning and Individual Differences}, 126, 102846.
 
-\bibitem{zhou2025}
-W. Zhou, Y. Li, J. Li, T. Zhang, X. Duan, N. Ma, and Y. Wang, ``A Student Academic Performance Prediction Model Based on the Interval Belief Rule Base,'' \textit{Scientific Reports}, vol. 15, p. 30607, 2025.
+\bibitem[Zhou et~al.(2025)]{zhou2025} Zhou et~al. (2025). A student academic performance prediction model based on the interval belief rule base. \textit{Scientific Reports}, 15, 30607.
 
-\bibitem{liu2024}
-M. Liu, W. He, G. Zhou, and H. Zhu, ``A New Student Performance Prediction Method Based on Belief Rule Base with Automated Construction,'' \textit{Mathematics}, vol. 12, no. 15, p. 2418, 2024.
+\bibitem[Liu et~al.(2024)]{liu2024} Liu et~al. (2024). A new student performance prediction method based on belief rule base with automated construction. \textit{Mathematics}, 12(15), 2418.
 
-\bibitem{fazil2024}
-M. Fazil, A. Risquez, and C. Halpin, ``A Novel Deep Learning Model for Student Performance Prediction Using Engagement Data,'' \textit{Journal of Learning Analytics}, vol. 11, pp. 1--19, 2024.
+\bibitem[Fazil et~al.(2024)]{fazil2024} Fazil et~al. (2024). A novel deep learning model for student performance prediction using engagement data. \textit{Journal of Learning Analytics}, 11, 1--19.
 
-\bibitem{alalawi2025}
-K. Alalawi, R. Athauda, R. Chiong, and I. Renner, ``Evaluating the Student Performance Prediction and Action Framework Through a Learning Analytics Intervention Study,'' \textit{Education and Information Technologies}, vol. 30, pp. 2887--2916, 2025.
+\bibitem[Alalawi et~al.(2025)]{alalawi2025} Alalawi et~al. (2025). Evaluating the student performance prediction and action framework through a learning analytics intervention study. \textit{Education and Information Technologies}, 30, 2887--2916.
 
-\bibitem{mai2024}
-J. Mai, F. Wei, W. He, H. Huang, and H. Zhu, ``An Explainable Student Performance Prediction Method Based on Dual-Level Progressive Classification Belief Rule Base,'' \textit{Electronics}, vol. 13, no. 22, p. 4358, 2024.
+\bibitem[Mai et~al.(2024)]{mai2024} Mai et~al. (2024). An explainable student performance prediction method based on dual-level progressive classification belief rule base. \textit{Electronics}, 13(22), 4358.
 
-\bibitem{hu2025}
-J. Hu, H. Wang, and D. Ji, ``Educational Performance Evaluation Based on Fuzzy Evaluation Model,'' \textit{Discover Computing}, vol. 28, p. 345, 2025.
+\bibitem[Hu et~al.(2025)]{hu2025} Hu et~al. (2025). Educational performance evaluation based on fuzzy evaluation model. \textit{Discover Computing}, 28, 345.
 
-\bibitem{li2024fuzzy}
-D. Li, ``Creating Personalized Higher Education Teaching System Using Fuzzy Association Rule Mining,'' \textit{International Journal of Computational Intelligence Systems}, vol. 17, p. 239, 2024.
+\bibitem[Li(2024)]{li2024fuzzy} Li (2024). Creating personalized higher education teaching system using fuzzy association rule mining. \textit{International Journal of Computational Intelligence Systems}, 17, 239.
 
-\bibitem{albreiki2021}
-B. Albreiki, T. Habuza, Z. Shuqfa, M. A. Serhani, N. Zaki, and S. Harous, ``Customized Rule-Based Model to Identify At-Risk Students and Propose Rational Remedial Actions,'' \textit{Big Data and Cognitive Computing}, vol. 5, no. 4, p. 71, 2021.
+\bibitem[Albreiki et~al.(2021)]{albreiki2021} Albreiki et~al. (2021). Customized rule-based model to identify at-risk students and propose rational remedial actions. \textit{Big Data and Cognitive Computing}, 5(4), 71.
 
-\bibitem{rustemi2024}
-A. Rustemi, F. Dalipi, V. Atanasovski, and A. Risteski, ``DIAR: A Blockchain-Based System for Generation and Verification of Academic Diplomas,'' \textit{Discover Applied Sciences}, vol. 6, p. 297, 2024.
+\bibitem[Rustemi et~al.(2024)]{rustemi2024} Rustemi et~al. (2024). DIAR: A blockchain-based system for generation and verification of academic diplomas. \textit{Discover Applied Sciences}, 6, 297.
 
-\bibitem{cardenas2025}
-M. A. Cardenas-Quispe and A. Pacheco, ``Blockchain Ensuring Academic Integrity with a Degree Verification Prototype,'' \textit{Scientific Reports}, vol. 15, p. 9281, 2025.
+\bibitem[Cardenas-Quispe and Pacheco(2025)]{cardenas2025} Cardenas-Quispe and Pacheco (2025). Blockchain ensuring academic integrity with a degree verification prototype. \textit{Scientific Reports}, 15, 9281.
 
-\bibitem{sangeetha2025}
-A. S. Sangeetha and S. Shunmugan, ``Privacy-Enabled Academic Certificate Authentication and Deep Learning-Based Student Performance Prediction System Using Hyperledger Blockchain Technology,'' \textit{Journal of Parallel and Distributed Computing}, vol. 204, p. 105119, 2025.
+\bibitem[Sangeetha and Shunmugan(2025)]{sangeetha2025} Sangeetha and Shunmugan (2025). Privacy-enabled academic certificate authentication and deep learning-based student performance prediction system using Hyperledger blockchain technology. \textit{Journal of Parallel and Distributed Computing}, 204, 105119.
 
-\bibitem{kadhim2023}
-M. Kadhim, A. A. Yassin, and Z. Abduljabbar, ``Towards for Designing Educational System Using Role-Based Access Control,'' \textit{International Journal of Intelligent Engineering and Systems}, vol. 16, pp. 45--56, 2023.
+\bibitem[Kadhim et~al.(2023)]{kadhim2023} Kadhim et~al. (2023). Towards for designing educational system using role-based access control. \textit{International Journal of Intelligent Engineering and Systems}, 16, 45--56.
 
-\bibitem{alqahtani2019}
-F. Alqahtani et al., ``Leaderboards and Learning: Engagement in MOOCs,'' \textit{International Review of Research in Open and Distributed Learning}, vol. 20, pp. 134--152, 2019.
+\bibitem[Alqahtani et~al.(2019)]{alqahtani2019} Alqahtani et~al. (2019). Leaderboards and learning: Engagement in MOOCs. \textit{International Review of Research in Open and Distributed Learning}, 20, 134--152.
 
-\bibitem{sakulkueakulsuk2018}
-B. Sakulkueakulsuk et al., ``Customizable Leaderboards in Educational Games,'' \textit{Games and Culture}, vol. 13, pp. 567--589, 2018.
+\bibitem[Sakulkueakulsuk et~al.(2018)]{sakulkueakulsuk2018} Sakulkueakulsuk et~al. (2018). Customizable leaderboards in educational games. \textit{Games and Culture}, 13, 567--589.
 
 \end{thebibliography}
 
