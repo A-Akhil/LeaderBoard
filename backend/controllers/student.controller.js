@@ -174,7 +174,6 @@ exports.registerStudent = async (req, res) => {
             name,
             email,
             password: hashedPassword,
-            rawPassword: password, // For demo purposes only, remove in production
             registerNo,
             course,
             program,
@@ -210,7 +209,7 @@ exports.getStudentsByDepartment = async (req, res) => {
         if (section) filter['currentClass.section'] = section;
         
         const students = await studentModel.find(filter)
-            .select('-password -rawPassword')
+            .select('-password')
             .populate({
                 path: 'currentClass.ref',
                 select: 'year section academicYear'
@@ -368,8 +367,19 @@ module.exports.changePassword = async (req, res, next) => {
 module.exports.logoutStudent = async (req, res, next) => {
     try {
         res.clearCookie('token');
-        const token = req.cookies.token || req.headers.authorization.split(' ')[1];
-        await blackListModel.create({ token });
+        
+        // Safely get token from request
+        let token;
+        if (req.cookies && req.cookies.token) {
+            token = req.cookies.token;
+        } else if (req.headers.authorization && req.headers.authorization.startsWith('Bearer ')) {
+            token = req.headers.authorization.split(' ')[1];
+        }
+        
+        if (token) {
+            await blackListModel.create({ token });
+        }
+        
         res.status(200).json({ message: 'Logged out successfully' });
     } catch (error) {
         next(error);
@@ -380,7 +390,11 @@ module.exports.logoutStudent = async (req, res, next) => {
 module.exports.getstudentEventDetails = async (req, res, next) => {
     try {
         const studentId = req.params.id;
-        console.log(studentId);
+        
+        // Authorization check: students can only access their own data
+        if (req.student._id.toString() !== studentId) {
+            return res.status(403).json({ message: 'Forbidden: You can only access your own event details' });
+        }
         
         const student = await studentModel.findById(studentId)
             .populate({

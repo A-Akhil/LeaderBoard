@@ -45,8 +45,7 @@ class TeacherBulkService {
                     name: teacher.name,
                     email: teacher.email,
                     registerNo: teacher.registerNo,
-                    password: hashedPassword,
-                    rawPassword: password // Save the raw password
+                    password: hashedPassword
                 });
 
                 await this.emailService.sendPasswordEmail(newTeacher.email, newTeacher.name, password);
@@ -55,7 +54,7 @@ class TeacherBulkService {
                     name: teacher.name,
                     email: teacher.email,
                     registerNo: teacher.registerNo,
-                    rawPassword: password // Include the raw password in the results
+                    generatedPassword: password // Include generated password for admin reference (consider removing for security)
                 });
             } catch (error) {
                 results.failed.push({

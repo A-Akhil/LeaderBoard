@@ -21,7 +21,6 @@ module.exports.registeradmin = async (req, res, next) => {
             name,
             email,
             password,
-            rawPassword: password,// Keep the raw password
             department: 'admin',
         });
 
@@ -53,8 +52,8 @@ module.exports.loginadmin = async (req, res, next) => {
         const { email, password } = req.body;
         console.log('Login attempt for:', email);
         
-        // Include both password and rawPassword in the query
-        const admin = await adminModel.findOne({ email }).select('+password +rawPassword');
+        // Find admin with hashed password only
+        const admin = await adminModel.findOne({ email }).select('+password');
         console.log('Found admin:', admin ? 'Yes' : 'No');
 
         if (!admin) {
@@ -62,11 +61,10 @@ module.exports.loginadmin = async (req, res, next) => {
             return res.status(401).json({ message: 'Invalid email or password' });
         }
 
-        // Try both hashed and raw password comparison
-        const isHashMatch = await admin.comparePassword(password);
-        const isRawMatch = (password === admin.rawPassword);
+        // Verify password using secure hash comparison only
+        const isMatch = await admin.comparePassword(password);
         
-        if (!isHashMatch && !isRawMatch) {
+        if (!isMatch) {
             console.log('Password match failed for:', email);
             return res.status(401).json({ message: 'Invalid email or password' });
         }

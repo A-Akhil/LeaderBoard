@@ -55,6 +55,7 @@ router.post('/login',[
 router.get('/profile', authMiddleware.authStudent, studentController.getStudentProfile);
 
 router.post('/bulk-register', 
+    authMiddleware.authAdmin, // Require admin authentication for bulk operations
     (req, res, next) => {
         upload.single('file')(req, res, (err) => {
             if (err) {
@@ -71,7 +72,7 @@ router.put('/change-password',authMiddleware.authStudent, studentController.chan
 router.get('/logout', authMiddleware.authStudent, studentController.logoutStudent);
 module.exports = router
 
-router.get('/events/:id',studentController.getstudentEventDetails);
+router.get('/events/:id', authMiddleware.authStudent, studentController.getstudentEventDetails);
 
 router.get('/events-history', authMiddleware.authStudent, studentController.getAllStudentEvents);
 

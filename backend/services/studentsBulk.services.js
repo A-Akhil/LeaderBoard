@@ -45,8 +45,7 @@ class StudentBulkService {
                     name: student.name,
                     email: student.email,
                     registerNo: student.registerNo,
-                    password: hashedPassword,
-                    rawPassword: password // Save the raw password
+                    password: hashedPassword
                 });
 
                 // Email Service (Optional)
@@ -56,7 +55,7 @@ class StudentBulkService {
                     name: student.name,
                     email: student.email,
                     registerNo: student.registerNo,
-                    rawPassword: password // Include raw password in the results
+                    generatedPassword: password // Include generated password for admin reference (consider removing for security)
                 });
 
             } catch (error) {

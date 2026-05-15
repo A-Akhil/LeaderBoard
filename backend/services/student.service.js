@@ -34,7 +34,6 @@ exports.createStudent = async (studentData) => {
         name,
         email,
         password: hashedPassword,
-        rawPassword: password, // For development only
         registerNo,
         course,
         program,
@@ -55,7 +54,7 @@ exports.createStudent = async (studentData) => {
  */
 exports.getStudentsByFilter = async (filter = {}) => {
     return await studentModel.find(filter)
-        .select('-password -rawPassword')
+        .select('-password')
         .populate({
             path: 'currentClass.ref',
             select: 'year section academicYear'
@@ -141,7 +140,6 @@ module.exports.changePassword = async (studentId, oldPassword, newPassword) => {
 
         const hashedPassword = await studentModel.hashedPassword(newPassword);
         student.password = hashedPassword;
-        student.rawPassword = newPassword; // Update raw password
         await student.save();
 
         return student;

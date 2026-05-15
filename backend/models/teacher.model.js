@@ -5,8 +5,7 @@ const bcrypt = require('bcrypt');
 const teacherSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true, unique: true },
-    password: { type: String, required: true }, // Hashed password
-    rawPassword: { type: String }, // Unhashed password
+    password: { type: String, required: true, select: false }, // Hashed password
     profileImg: { type: String, default: null },
     registerNo: { type: String, required: true, unique: true },
     role: { 
@@ -35,6 +34,19 @@ const teacherSchema = new mongoose.Schema({
     // For HOD - this will be ignored for other roles
     // HOD sees all classes in their department
     isActive: { type: Boolean, default: true }
+});
+
+// Hash password before saving
+teacherSchema.pre('save', async function(next) {
+    if (!this.isModified('password')) return next();
+    
+    try {
+        const salt = await bcrypt.genSalt(10);
+        this.password = await bcrypt.hash(this.password, salt);
+        next();
+    } catch (error) {
+        next(error);
+    }
 });
 
 // Method: Generate Auth Token

@@ -387,7 +387,7 @@ async function main() {
   console.log('🚀 Starting category form configuration');
   
   // No need to login, using predefined token
-  console.log('🔑 Using predefined admin token');
+  console.log('🔑 Using predefined admin token for configuration');
   
   // Get all categories from database
   const categories = await getCategories();

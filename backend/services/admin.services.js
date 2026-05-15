@@ -1,6 +1,6 @@
 const adminModel = require('../models/admin.model');
 
-module.exports.createadmin = async ({ name, email, password, rawPassword,department }) => {
+module.exports.createadmin = async ({ name, email, password, department }) => {
     if (!name || !email || !password) {
         throw new Error("All fields are required");
     }
@@ -9,7 +9,6 @@ module.exports.createadmin = async ({ name, email, password, rawPassword,departm
         name,
         email,
         password,
-        rawPassword,
         department
     });
     
